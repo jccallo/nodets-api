@@ -1,34 +1,47 @@
 {
-  "name": "nodets-api",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "scripts": {
-    "dev": "nodemon",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "axios": "^1.13.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "mysql2": "^3.16.0",
-    "zod": "^4.3.5"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.0.6",
-    "nodemon": "^3.1.11",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  },
-  "nodemonConfig": {
-    "watch": [
-      "src"
-    ],
-    "ext": "ts",
-    "exec": "ts-node src/index.ts"
-  }
+   "name": "nodets-api",
+   "version": "1.0.0",
+   "main": "dist/index.js",
+   "scripts": {
+      "dev": "nodemon",
+      "build": "tsc",
+      "start": "node dist/index.js",
+      "typecheck": "tsc --noEmit",
+      "migrate:make": "knex migrate:make -x ts --knexfile src/shared/infrastructure/persistence/mysql/knex-config.ts",
+      "migrate:latest": "knex migrate:latest --knexfile src/shared/infrastructure/persistence/mysql/knex-config.ts",
+      "migrate:rollback": "knex migrate:rollback --knexfile src/shared/infrastructure/persistence/mysql/knex-config.ts",
+      "migrate:fb:manual:up": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts up",
+      "migrate:fb:manual:down": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts down"
+   },
+   "dependencies": {
+      "axios": "^1.13.2",
+      "bcryptjs": "^3.0.3",
+      "cors": "^2.8.5",
+      "dotenv": "^17.2.3",
+      "express": "^5.2.1",
+      "jsonwebtoken": "^9.0.3",
+      "knex": "^3.1.0",
+      "knex-firebird-dialect": "^1.4.6",
+      "mysql2": "^3.16.0",
+      "node-firebird": "^1.1.9",
+      "zod": "^4.3.5"
+   },
+   "devDependencies": {
+      "@types/bcryptjs": "^2.4.6",
+      "@types/cors": "^2.8.19",
+      "@types/express": "^5.0.6",
+      "@types/jsonwebtoken": "^9.0.10",
+      "@types/node": "^25.0.6",
+      "nodemon": "^3.1.11",
+      "ts-node": "^10.9.2",
+      "tsconfig-paths": "^4.2.0",
+      "typescript": "^5.9.3"
+   },
+   "nodemonConfig": {
+      "watch": [
+         "src"
+      ],
+      "ext": "ts",
+      "exec": "ts-node -r tsconfig-paths/register src/index.ts"
+   }
 }

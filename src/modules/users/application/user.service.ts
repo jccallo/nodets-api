@@ -1,52 +1,76 @@
-import { User, CreateUserDTO } from '../domain/user.model'
-import { httpClient, HttpClient } from '../../../shared/infrastructure/http'
-import { ExternalUserDTO } from '../infrastructure/user-external.dto'
-import { UserMapper } from '../infrastructure/user.mapper'
+import { User, CreateUserDTO, UpdateUserDTO, loginSchema } from '../domain/user.model'
+import { UserRepository } from '../domain/user.repository'
+import { AppError } from '../../../shared/errors/app-error'
+import { HttpStatus } from '../../../shared/http-status'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import { env } from '../../../shared/env'
 
 export class UserService {
-  private users: User[] = [
-    {
-      id: '1',
-      email: 'admin@example.com',
-      name: 'Admin',
-      createdAt: new Date(),
-    },
-  ]
-
-  constructor(private http: HttpClient = httpClient) {}
+  constructor(private userRepository: UserRepository) {}
 
   async getAll(): Promise<User[]> {
-    return this.users
+    return this.userRepository.findAll()
   }
 
-  async getExternalUsers(): Promise<User[]> {
-    // Ejemplo Senior: Consumimos la API externa
-    // No necesitamos pasar headers aquí, el interceptor los inyectará automáticamente
-    const rawUsers = await this.http.get<ExternalUserDTO[]>('https://jsonplaceholder.typicode.com/users')
-
-    // MAPEAMOS a nuestro dominio. La lógica de negocio solo recibe entidades User.
-    return UserMapper.toDomainList(rawUsers)
-  }
-
-  simulateLogin(token: string) {
-    // Establecemos el token de forma global
-    this.http.setToken(token)
-  }
-
-  async getExternalPosts() {
-    // Ejemplo demostrativo de uso de HttpClient (Senior Level)
-    // Ya no necesitas acceder a .data, el adaptador lo hace por ti
-    const posts = await this.http.get<any[]>('https://jsonplaceholder.typicode.com/posts?_limit=5')
-    return posts
+  async getById(id: string): Promise<User> {
+    const user = await this.userRepository.findById(id)
+    if (!user) {
+      throw new AppError('Usuario no encontrado', HttpStatus.NOT_FOUND)
+    }
+    return user
   }
 
   async create(data: CreateUserDTO): Promise<User> {
-    const newUser: User = {
-      id: Math.random().toString(36).substring(7),
-      ...data,
-      createdAt: new Date(),
+    const existingUser = await this.userRepository.findByEmail(data.email)
+    if (existingUser) {
+      throw new AppError('El email ya está registrado', HttpStatus.BAD_REQUEST)
     }
-    this.users.push(newUser)
-    return newUser
+
+    const hashedPassword = await bcrypt.hash(data.password, 10)
+
+    return await this.userRepository.save({
+      ...data,
+      password: hashedPassword,
+    })
+  }
+
+  async login(data: any): Promise<{ user: User; token: string }> {
+    const { email, password } = loginSchema.parse(data)
+
+    const user = await this.userRepository.findByEmail(email)
+    if (!user) {
+      throw new AppError('Credenciales inválidas', HttpStatus.UNAUTHORIZED)
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!isPasswordValid) {
+      throw new AppError('Credenciales inválidas', HttpStatus.UNAUTHORIZED)
+    }
+
+    const token = jwt.sign({ id: user.id, email: user.email }, env.jwtSecret, {
+      expiresIn: '24h',
+    })
+
+    return { user, token }
+  }
+
+  async update(id: string, data: UpdateUserDTO): Promise<User> {
+    await this.getById(id) // Verify exists
+
+    if (data.email) {
+      const existingUser = await this.userRepository.findByEmail(data.email)
+      if (existingUser && existingUser.id !== id) {
+        throw new AppError('El email ya está en uso por otro usuario', HttpStatus.BAD_REQUEST)
+      }
+    }
+
+    await this.userRepository.update(id, data)
+    return this.getById(id)
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.getById(id) // Verify exists
+    await this.userRepository.delete(id)
   }
 }
