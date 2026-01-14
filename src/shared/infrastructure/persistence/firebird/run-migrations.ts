@@ -59,8 +59,8 @@ async function runMigrations() {
             await migration.up(firebirdDb)
 
             // Registrar en log con ID manual
-            const lastLog = await firebirdDb(LOG_TABLE).max('ID as maxId').first()
-            const nextId = (lastLog?.maxId || 0) + 1
+            const lastLogEntry = await firebirdDb(LOG_TABLE).orderBy('ID', 'desc').first()
+            const nextId = (lastLogEntry ? lastLogEntry.ID : 0) + 1
 
             await firebirdDb(LOG_TABLE).insert({
                ID: nextId,
