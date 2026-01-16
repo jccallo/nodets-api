@@ -1,16 +1,19 @@
-import { UserRepository } from '../../../users/domain/user.repository'
-import { LoginDTO } from '../dto'
-import { AuthResponse } from '../../domain/auth.model'
+import { UserRepository } from '../../../users/domain/repositories/user.repository'
 import { AppError } from '../../../../shared/errors/app-error'
 import { HttpStatus } from '../../../../shared/http-status'
+import { LoginDTO } from '../dto/login.dto'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { env } from '../../../../shared/env'
+// Removed UserEmail import
+import { User } from '../../../users/domain/entities/user.model' // Assuming User type is needed for the return signature
+import { injectable, inject } from 'tsyringe'
 
+@injectable()
 export class LoginUseCase {
-   constructor(private userRepository: UserRepository) {}
+   constructor(@inject('UserRepository') private userRepository: UserRepository) {}
 
-   async execute(data: LoginDTO): Promise<AuthResponse> {
+   async execute(data: LoginDTO): Promise<{ user: User; token: string }> {
       const { email, password } = data
 
       // Buscar usuario por email
@@ -32,11 +35,7 @@ export class LoginUseCase {
 
       // Retornar respuesta sin password
       return {
-         user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-         },
+         user,
          token,
       }
    }

@@ -1,27 +1,40 @@
-import { UserRepository } from '../../../domain/user.repository'
+import { UserRepository } from '../../../domain/repositories/user.repository'
 import { CreateUserDTO } from '../../dto'
-import { User } from '../../../domain/user.model'
+import { User } from '../../../domain/entities/user.model'
 import { AppError } from '../../../../../shared/errors/app-error'
 import { HttpStatus } from '../../../../../shared/http-status'
+
+import { UserRole } from '../../../domain/enums/user-role.enum'
+import { UserStatus } from '../../../domain/enums/user-status.enum'
 import bcrypt from 'bcryptjs'
 
+import { injectable, inject } from 'tsyringe'
+
+@injectable()
 export class CreateUserUseCase {
-   constructor(private userRepository: UserRepository) {}
+   constructor(@inject('UserRepository') private userRepository: UserRepository) {}
 
    async execute(data: CreateUserDTO): Promise<User> {
-      // Validar que el email no exista
       const existingUser = await this.userRepository.findByEmail(data.email)
       if (existingUser) {
          throw new AppError('El email ya está registrado', HttpStatus.BAD_REQUEST)
       }
 
-      // Hash del password
       const hashedPassword = await bcrypt.hash(data.password, 10)
 
-      // Guardar usuario
-      return await this.userRepository.save({
-         ...data,
+      const newUserResult = User.create({
+         email: data.email,
+         name: data.name,
          password: hashedPassword,
+         roles: [UserRole.USER],
+         status: UserStatus.ACTIVE,
+         createdAt: new Date(),
       })
+
+      if (newUserResult.isFail()) {
+         throw new AppError(newUserResult.error(), HttpStatus.INTERNAL_SERVER_ERROR)
+      }
+
+      return await this.userRepository.save(newUserResult.value())
    }
 }

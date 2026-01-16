@@ -1,11 +1,14 @@
-import { User } from '../domain/user.model'
 import { CreateUserDTO, LoginDTO, UpdateUserDTO } from './dto'
-import { UserRepository } from '../domain/user.repository'
+import { UserRepository } from '../domain/repositories/user.repository'
+import { User } from '../domain/entities/user.model'
 import { AppError } from '../../../shared/errors/app-error'
 import { HttpStatus } from '../../../shared/http-status'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { env } from '../../../shared/env'
+import { v4 as uuidv4 } from 'uuid'
+import { UserRole } from '../domain/enums/user-role.enum'
+import { UserStatus } from '../domain/enums/user-status.enum'
 
 export class UserService {
    constructor(private userRepository: UserRepository) {}
@@ -30,10 +33,17 @@ export class UserService {
 
       const hashedPassword = await bcrypt.hash(data.password, 10)
 
-      return await this.userRepository.save({
-         ...data,
-         password: hashedPassword,
-      })
+      const newUser = new User(
+         uuidv4(), // We need uuid here now
+         data.email,
+         data.name,
+         hashedPassword,
+         [UserRole.USER],
+         UserStatus.ACTIVE,
+         new Date()
+      )
+
+      return await this.userRepository.save(newUser)
    }
 
    async login(data: LoginDTO): Promise<{ user: User; token: string }> {
@@ -57,7 +67,7 @@ export class UserService {
    }
 
    async update(id: string, data: UpdateUserDTO): Promise<User> {
-      await this.getById(id) // Verify exists
+      const currentUser = await this.getById(id) // Verify exists
 
       if (data.email) {
          const existingUser = await this.userRepository.findByEmail(data.email)
@@ -66,8 +76,18 @@ export class UserService {
          }
       }
 
-      await this.userRepository.update(id, data)
-      return this.getById(id)
+      const updatedUser = new User(
+         currentUser.id,
+         data.email || currentUser.email,
+         data.name || currentUser.name,
+         data.password ? await bcrypt.hash(data.password, 10) : currentUser.password,
+         currentUser.roles,
+         currentUser.status,
+         currentUser.createdAt
+      )
+
+      await this.userRepository.update(id, updatedUser)
+      return updatedUser
    }
 
    async delete(id: string): Promise<void> {

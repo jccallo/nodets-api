@@ -1,10 +1,13 @@
-import { UserRepository } from '../../../domain/user.repository'
-import { User } from '../../../domain/user.model'
+import { UserRepository } from '../../../domain/repositories/user.repository'
+import { User } from '../../../domain/entities/user.model'
 import { AppError } from '../../../../../shared/errors/app-error'
 import { HttpStatus } from '../../../../../shared/http-status'
 
+import { injectable, inject } from 'tsyringe'
+
+@injectable()
 export class GetUserByIdUseCase {
-   constructor(private userRepository: UserRepository) {}
+   constructor(@inject('UserRepository') private userRepository: UserRepository) {}
 
    async execute(id: string): Promise<User> {
       const user = await this.userRepository.findById(id)
