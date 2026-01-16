@@ -34,7 +34,7 @@ export class MySQLUserRepository implements UserRepository {
       return user
    }
 
-   async findById(id: string): Promise<User | null> {
+   async findById(id: number | string): Promise<User | null> {
       const row = await this.db('users').where({ id }).first()
       return row ? UserMapper.toDomain(row) : null
    }
@@ -49,7 +49,7 @@ export class MySQLUserRepository implements UserRepository {
       return rows.map((row) => UserMapper.toDomain(row))
    }
 
-   async update(id: string, user: User): Promise<void> {
+   async update(id: number | string, user: User): Promise<void> {
       await this.db('users').where({ id }).update({
          email: user.email,
          name: user.name,
@@ -58,7 +58,7 @@ export class MySQLUserRepository implements UserRepository {
       })
    }
 
-   async delete(id: string): Promise<void> {
+   async delete(id: number | string): Promise<void> {
       await this.db('users').where({ id }).del()
    }
 }

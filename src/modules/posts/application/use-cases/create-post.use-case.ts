@@ -7,7 +7,7 @@ import { HttpStatus } from '@/shared/http-status'
 export class CreatePostUseCase {
    constructor(private postRepository: PostRepository) {}
 
-   async execute(userId: string, data: CreatePostDTO): Promise<Post> {
+   async execute(userId: number | string, data: CreatePostDTO): Promise<Post> {
       const post = new Post({
          title: data.title,
          content: data.content,

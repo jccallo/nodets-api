@@ -1,5 +1,5 @@
 export interface UserResponseDTO {
-   id: string
+   id: number | string
    email: string
    name: string
    roles: string[]

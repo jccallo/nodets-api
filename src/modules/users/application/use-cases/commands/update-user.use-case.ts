@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs'
 export class UpdateUserUseCase {
    constructor(private userRepository: UserRepository) {}
 
-   async execute(id: string, data: UpdateUserDTO): Promise<User> {
+   async execute(id: number | string, data: UpdateUserDTO): Promise<User> {
       // Verificar que el usuario existe
       const currentUser = await this.userRepository.findById(id)
       if (!currentUser) {

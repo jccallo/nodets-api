@@ -5,7 +5,7 @@ import { HttpStatus } from '@/shared/http-status'
 export class DeleteUserUseCase {
    constructor(private userRepository: UserRepository) {}
 
-   async execute(id: string): Promise<void> {
+   async execute(id: number | string): Promise<void> {
       const user = await this.userRepository.findById(id)
       if (!user) {
          throw new AppError('Usuario no encontrado', HttpStatus.NOT_FOUND)

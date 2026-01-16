@@ -7,7 +7,6 @@ import { HttpStatus } from '@/shared/http-status'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { env } from '@/shared/env'
-import { v4 as uuidv4 } from 'uuid'
 import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
 import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 
@@ -18,7 +17,7 @@ export class UserService {
       return this.userRepository.findAll()
    }
 
-   async getById(id: string): Promise<User> {
+   async getById(id: number | string): Promise<User> {
       const user = await this.userRepository.findById(id)
       if (!user) {
          throw new AppError('Usuario no encontrado', HttpStatus.NOT_FOUND)
@@ -35,7 +34,6 @@ export class UserService {
       const hashedPassword = await bcrypt.hash(data.password, 10)
 
       const newUser = new User({
-         id: uuidv4(),
          email: data.email,
          name: data.name,
          password: hashedPassword,
@@ -67,7 +65,7 @@ export class UserService {
       return { user, token }
    }
 
-   async update(id: string, data: UpdateUserDTO): Promise<User> {
+   async update(id: number | string, data: UpdateUserDTO): Promise<User> {
       const currentUser = await this.getById(id) // Verify exists
 
       if (data.email) {
@@ -91,7 +89,7 @@ export class UserService {
       return updatedUser
    }
 
-   async delete(id: string): Promise<void> {
+   async delete(id: number | string): Promise<void> {
       await this.getById(id) // Verify exists
       await this.userRepository.delete(id)
    }

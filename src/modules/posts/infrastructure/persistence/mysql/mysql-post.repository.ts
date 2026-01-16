@@ -30,17 +30,17 @@ export class MySQLPostRepository implements PostRepository {
       return post
    }
 
-   async findById(id: string): Promise<Post | null> {
+   async findById(id: number | string): Promise<Post | null> {
       const row = await this.db('posts').where({ id }).first()
       return row ? PostMapper.toDomain(row) : null
    }
 
-   async findByUserId(userId: string): Promise<Post[]> {
+   async findByUserId(userId: number | string): Promise<Post[]> {
       const rows = await this.db('posts').where({ userId })
       return rows.map((row: any) => PostMapper.toDomain(row))
    }
 
-   async delete(id: string): Promise<void> {
+   async delete(id: number | string): Promise<void> {
       await this.db('posts').where({ id }).del()
    }
 }

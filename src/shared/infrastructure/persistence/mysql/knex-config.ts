@@ -12,7 +12,7 @@ const config: { [key: string]: Knex.Config } = {
          port: env.db.port,
       },
       migrations: {
-         directory: './migrations',
+         directory: './src/shared/infrastructure/persistence/mysql/migrations',
          extension: 'ts',
       },
    },

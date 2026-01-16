@@ -1,8 +1,8 @@
 export class Post {
-   public id?: string
+   public id?: number | string
    public title: string
    public content: string
-   public userId: string
+   public userId: number | string
    public published: boolean
    public createdAt?: Date
    public updatedAt?: Date
@@ -10,9 +10,9 @@ export class Post {
    constructor(props: {
       title: string
       content: string
-      userId: string
+      userId: number | string
       published: boolean
-      id?: string
+      id?: number | string
       createdAt?: Date
       updatedAt?: Date
    }) {

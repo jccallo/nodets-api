@@ -2,7 +2,7 @@ import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
 import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 
 export class User {
-   public id?: string
+   public id?: number | string
    public email: string
    public name: string
    public password: string
@@ -17,7 +17,7 @@ export class User {
       password: string
       roles: UserRole[]
       status: UserStatus
-      id?: string
+      id?: number | string
       createdAt?: Date
       updatedAt?: Date
    }) {

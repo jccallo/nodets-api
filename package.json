@@ -7,11 +7,11 @@
       "build": "tsc",
       "start": "node dist/index.js",
       "typecheck": "tsc --noEmit",
-      "migrate:make": "knex migrate:make -x ts --knexfile src/shared/infrastructure/persistence/mysql/knex-config.ts",
-      "migrate:latest": "knex migrate:latest --knexfile src/shared/infrastructure/persistence/mysql/knex-config.ts",
-      "migrate:rollback": "knex migrate:rollback --knexfile src/shared/infrastructure/persistence/mysql/knex-config.ts",
-      "migrate:fb:manual:up": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts up",
-      "migrate:fb:manual:down": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts down"
+      "db:make": "node -r ts-node/register -r tsconfig-paths/register node_modules/.bin/knex migrate:make -x ts",
+      "db:migrate": "node -r ts-node/register -r tsconfig-paths/register node_modules/.bin/knex migrate:latest",
+      "db:rollback": "node -r ts-node/register -r tsconfig-paths/register node_modules/.bin/knex migrate:rollback",
+      "db:fb:migrate": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts up",
+      "db:fb:rollback": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts down"
    },
    "dependencies": {
       "axios": "^1.13.2",
