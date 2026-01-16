@@ -1,12 +1,10 @@
-import { injectable, inject } from 'tsyringe'
 import { PostRepository } from '../../../domain/repositories/post.repository'
 import { Post } from '../../../domain/entities/post.model'
 import { PostMapper } from '../../mappers/post.mapper'
 import { Knex } from 'knex'
 
-@injectable()
 export class MySQLPostRepository implements PostRepository {
-   constructor(@inject('KnexConnection') private db: Knex) {}
+   constructor(private db: Knex) {}
 
    async save(post: Post): Promise<Post> {
       const exists = post.id ? await this.findById(post.id) : null

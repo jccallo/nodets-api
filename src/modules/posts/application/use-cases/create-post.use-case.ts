@@ -1,13 +1,11 @@
-import { injectable, inject } from 'tsyringe'
 import { PostRepository } from '../../domain/repositories/post.repository'
 import { Post } from '../../domain/entities/post.model'
 import { CreatePostDTO } from '../dto/create-post.dto'
 import { AppError } from '../../../../shared/errors/app-error'
 import { HttpStatus } from '../../../../shared/http-status'
 
-@injectable()
 export class CreatePostUseCase {
-   constructor(@inject('PostRepository') private postRepository: PostRepository) {}
+   constructor(private postRepository: PostRepository) {}
 
    async execute(userId: string, data: CreatePostDTO): Promise<Post> {
       const post = new Post({

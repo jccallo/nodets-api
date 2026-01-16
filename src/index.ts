@@ -1,21 +1,5 @@
-import 'reflect-metadata'
-import cors from 'cors'
-import express from 'express'
-import './shared/container' // Register DI container
+import './shared/services' // Register Services & Subscribers (Laravel-style)
+import { startServer } from './app/server'
 import { env } from './shared/env'
-import { authRoutes } from './modules/auth/ui/auth.routes'
-import { postRoutes } from './modules/posts/ui/post.routes'
-import { userRoutes } from './modules/users/ui/user.routes'
 
-const app = express()
-
-app.use(cors())
-app.use(express.json())
-
-app.use('/users', userRoutes)
-app.use('/auth', authRoutes)
-app.use('/posts', postRoutes)
-
-app.listen(env.port, () => {
-   console.log(`Server running on port ${env.port}`)
-})
+startServer(env.port)

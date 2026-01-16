@@ -1,11 +1,9 @@
 import { UserRepository } from '../../../domain/repositories/user.repository'
 import { AppError } from '../../../../../shared/errors/app-error'
 import { HttpStatus } from '../../../../../shared/http-status'
-import { injectable, inject } from 'tsyringe'
 
-@injectable()
 export class DeleteUserUseCase {
-   constructor(@inject('UserRepository') private userRepository: UserRepository) {}
+   constructor(private userRepository: UserRepository) {}
 
    async execute(id: string): Promise<void> {
       const user = await this.userRepository.findById(id)

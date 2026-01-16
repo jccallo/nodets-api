@@ -8,11 +8,8 @@ import { UserRole } from '../../../domain/enums/user-role.enum'
 import { UserStatus } from '../../../domain/enums/user-status.enum'
 import bcrypt from 'bcryptjs'
 
-import { injectable, inject } from 'tsyringe'
-
-@injectable()
 export class CreateUserUseCase {
-   constructor(@inject('UserRepository') private userRepository: UserRepository) {}
+   constructor(private userRepository: UserRepository) {}
 
    async execute(data: CreateUserDTO): Promise<User> {
       const existingUser = await this.userRepository.findByEmail(data.email)

@@ -2,12 +2,10 @@ import { UserRepository } from '../../../domain/repositories/user.repository'
 import { User } from '../../../domain/entities/user.model'
 import { UserMapper } from '../../mappers/user.mapper'
 import { Knex } from 'knex'
-import { injectable, inject } from 'tsyringe'
 import { eventBus } from '../../../../../shared/infrastructure/events/event-bus'
 
-@injectable()
 export class MySQLUserRepository implements UserRepository {
-   constructor(@inject('KnexConnection') private db: Knex) {}
+   constructor(private db: Knex) {}
 
    async save(user: User): Promise<User> {
       const exists = user.id ? await this.findById(user.id) : null

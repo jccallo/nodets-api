@@ -5,11 +5,9 @@ import { AppError } from '../../../../../shared/errors/app-error'
 import { HttpStatus } from '../../../../../shared/http-status'
 // Removed VO imports
 import bcrypt from 'bcryptjs'
-import { injectable, inject } from 'tsyringe'
 
-@injectable()
 export class UpdateUserUseCase {
-   constructor(@inject('UserRepository') private userRepository: UserRepository) {}
+   constructor(private userRepository: UserRepository) {}
 
    async execute(id: string, data: UpdateUserDTO): Promise<User> {
       // Verificar que el usuario existe
