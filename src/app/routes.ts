@@ -2,6 +2,7 @@ import type { Express, Request, Response } from 'express'
 import { userRoutes } from '@/modules/users/ui/user.routes'
 import { authRoutes } from '@/modules/auth/ui/auth.routes'
 import { postRoutes } from '@/modules/posts/ui/post.routes'
+import { userWorkerRoutes } from '@/modules/user-workers/ui/user-worker.routes'
 import { HttpStatus } from '@/shared/http-status'
 
 export function registerRoutes(app: Express) {
@@ -12,4 +13,5 @@ export function registerRoutes(app: Express) {
    app.use('/auth', authRoutes)
    app.use('/users', userRoutes)
    app.use('/posts', postRoutes)
+   app.use('/user-workers', userWorkerRoutes)
 }

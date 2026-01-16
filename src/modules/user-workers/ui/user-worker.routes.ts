@@ -12,10 +12,12 @@ import {
 
 import { authMiddleware } from '@/shared/infrastructure/middleware/auth.middleware'
 
+import { db } from '@/shared/infrastructure/persistence/mysql/connection'
+
 const router = Router()
 
 // Repository
-const userWorkerRepository = new MySQLUserWorkerRepository()
+const userWorkerRepository = new MySQLUserWorkerRepository(db)
 
 // Use Cases
 const createUserWorkerUseCase = new CreateUserWorkerUseCase(userWorkerRepository)

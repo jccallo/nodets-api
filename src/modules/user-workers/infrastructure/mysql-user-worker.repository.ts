@@ -1,29 +1,48 @@
-import { IUserWorkerRepository } from '@/modules/user-workers/domain/user-worker.repository'
+import { IUserWorkerRepository, UserWorkerFilters } from '@/modules/user-workers/domain/user-worker.repository'
 import { IUserWorker } from '@/modules/user-workers/domain/user-worker.model'
+import { Knex } from 'knex'
+import { KnexPaginator } from '@/shared/infrastructure/persistence/mysql/knex-paginator'
 
 export class MySQLUserWorkerRepository implements IUserWorkerRepository {
+   private readonly tableName = 'user_workers'
+
+   constructor(private readonly db: Knex) {}
+
    async create(userWorker: IUserWorker): Promise<IUserWorker> {
-      // TODO: Implement database create
-      return userWorker
+      const [id] = await this.db(this.tableName).insert(userWorker)
+      return { ...userWorker, id }
    }
 
    async update(id: number, userWorker: Partial<IUserWorker>): Promise<IUserWorker | null> {
-      // TODO: Implement database update
-      return userWorker as IUserWorker
+      await this.db(this.tableName).where({ id }).update(userWorker)
+      return this.getById(id)
    }
 
    async delete(id: number): Promise<boolean> {
-      // TODO: Implement database delete
-      return true
+      const deleted = await this.db(this.tableName).where({ id }).del()
+      return deleted > 0
    }
 
-   async getAll(): Promise<IUserWorker[]> {
-      // TODO: Implement database getAll
-      return []
+   async getAll(filters: UserWorkerFilters = {}): Promise<{ data: IUserWorker[]; total: number }> {
+      const { name, page, limit } = filters
+      const query = this.db(this.tableName).select('*')
+
+      if (name) query.where('name', 'like', `%${name}%`)
+
+      const { data, meta } = await KnexPaginator.paginate<IUserWorker>({
+         query,
+         page,
+         limit,
+      })
+
+      return {
+         data,
+         total: meta.total,
+      }
    }
 
    async getById(id: number): Promise<IUserWorker | null> {
-      // TODO: Implement database getById
-      return null
+      const row = await this.db(this.tableName).where({ id }).first()
+      return row || null
    }
 }

@@ -10,9 +10,19 @@ import {
 import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
 
 export class UserController {
-   getAll = async (_req: Request, res: Response) => {
-      const users = await getAllUsersUseCase.execute()
-      res.status(HttpStatus.OK).json(users.map((u) => UserMapper.toResponse(u)))
+   getAll = async (req: Request, res: Response) => {
+      const { name, email, page, limit } = req.query
+      const { users, total } = await getAllUsersUseCase.execute({
+         name: name as string,
+         email: email as string,
+         page: page ? Number(page) : undefined,
+         limit: limit ? Number(limit) : undefined,
+      })
+
+      res.status(HttpStatus.OK).json({
+         data: users.map((u) => UserMapper.toResponse(u)),
+         meta: { total, page: page || 1, limit: limit || 10 },
+      })
    }
 
    getById = async (req: Request, res: Response) => {

@@ -1,6 +1,6 @@
 import { CreateUserDTO, UpdateUserDTO } from '@/modules/users/application/dto'
 import { LoginDTO } from '@/modules/auth/application/dto'
-import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
+import { UserRepository, UserFilters } from '@/modules/users/domain/repositories/user.repository'
 import { User } from '@/modules/users/domain/entities/user.model'
 import { AppError } from '@/shared/errors/app-error'
 import { HttpStatus } from '@/shared/http-status'
@@ -13,8 +13,8 @@ import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 export class UserService {
    constructor(private userRepository: UserRepository) {}
 
-   async getAll(): Promise<User[]> {
-      return this.userRepository.findAll()
+   async getAll(filters?: UserFilters): Promise<{ users: User[]; total: number }> {
+      return this.userRepository.findAll(filters)
    }
 
    async getById(id: number | string): Promise<User> {
