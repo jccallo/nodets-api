@@ -1,8 +1,8 @@
-import { UserRepository } from '../../../domain/repositories/user.repository'
-import { User } from '../../../domain/entities/user.model'
-import { UserMapper } from '../../mappers/user.mapper'
+import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
+import { User } from '@/modules/users/domain/entities/user.model'
+import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
 import { Knex } from 'knex'
-import { eventBus } from '../../../../../shared/infrastructure/events/event-bus'
+import { eventBus } from '@/shared/infrastructure/events/event-bus'
 
 export class MySQLUserRepository implements UserRepository {
    constructor(private db: Knex) {}

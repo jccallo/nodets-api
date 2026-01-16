@@ -1,8 +1,8 @@
-import { UserRepository } from '../../../domain/repositories/user.repository'
-import { UpdateUserDTO } from '../../dto'
-import { User } from '../../../domain/entities/user.model'
-import { AppError } from '../../../../../shared/errors/app-error'
-import { HttpStatus } from '../../../../../shared/http-status'
+import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
+import { UpdateUserDTO } from '@/modules/users/application/dto'
+import { User } from '@/modules/users/domain/entities/user.model'
+import { AppError } from '@/shared/errors/app-error'
+import { HttpStatus } from '@/shared/http-status'
 // Removed VO imports
 import bcrypt from 'bcryptjs'
 

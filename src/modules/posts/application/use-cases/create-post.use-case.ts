@@ -1,8 +1,8 @@
-import { PostRepository } from '../../domain/repositories/post.repository'
-import { Post } from '../../domain/entities/post.model'
-import { CreatePostDTO } from '../dto/create-post.dto'
-import { AppError } from '../../../../shared/errors/app-error'
-import { HttpStatus } from '../../../../shared/http-status'
+import { PostRepository } from '@/modules/posts/domain/repositories/post.repository'
+import { Post } from '@/modules/posts/domain/entities/post.model'
+import { CreatePostDTO } from '@/modules/posts/application/dto/create-post.dto'
+import { AppError } from '@/shared/errors/app-error'
+import { HttpStatus } from '@/shared/http-status'
 
 export class CreatePostUseCase {
    constructor(private postRepository: PostRepository) {}

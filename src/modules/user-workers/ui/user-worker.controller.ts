@@ -1,12 +1,12 @@
 import { Response, Request } from 'express'
-import { HttpStatus } from '../../../shared/http-status'
+import { HttpStatus } from '@/shared/http-status'
 import {
    CreateUserWorkerUseCase,
    UpdateUserWorkerUseCase,
    DeleteUserWorkerUseCase,
    GetAllUserWorkersUseCase,
    GetUserWorkerByIdUseCase,
-} from '../application/use-cases'
+} from '@/modules/user-workers/application/use-cases'
 
 export class UserWorkerController {
    constructor(

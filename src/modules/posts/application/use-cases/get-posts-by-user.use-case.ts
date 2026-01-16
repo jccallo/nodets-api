@@ -1,5 +1,5 @@
-import { PostRepository } from '../../domain/repositories/post.repository'
-import { Post } from '../../domain/entities/post.model'
+import { PostRepository } from '@/modules/posts/domain/repositories/post.repository'
+import { Post } from '@/modules/posts/domain/entities/post.model'
 
 export class GetPostsByUserUseCase {
    constructor(private postRepository: PostRepository) {}

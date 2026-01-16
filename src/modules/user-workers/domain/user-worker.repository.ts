@@ -1,4 +1,4 @@
-import { IUserWorker } from './user-worker.model'
+import { IUserWorker } from '@/modules/user-workers/domain/user-worker.model'
 
 export interface IUserWorkerRepository {
    create(userWorker: IUserWorker): Promise<IUserWorker>

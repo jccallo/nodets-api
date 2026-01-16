@@ -1,6 +1,6 @@
-import { PostRepository } from '../../../domain/repositories/post.repository'
-import { Post } from '../../../domain/entities/post.model'
-import { PostMapper } from '../../mappers/post.mapper'
+import { PostRepository } from '@/modules/posts/domain/repositories/post.repository'
+import { Post } from '@/modules/posts/domain/entities/post.model'
+import { PostMapper } from '@/modules/posts/infrastructure/mappers/post.mapper'
 import { Knex } from 'knex'
 
 export class MySQLPostRepository implements PostRepository {

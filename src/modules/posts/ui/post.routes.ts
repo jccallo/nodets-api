@@ -1,12 +1,10 @@
 import { Router } from 'express'
-import { container } from 'tsyringe'
-import { PostController } from './post.controller'
-import { validate } from '../../../shared/infrastructure/middleware/validate.middleware'
-import { createPostSchema } from '../application/dto/create-post.dto'
-import { authMiddleware } from '../../../shared/infrastructure/middleware/auth.middleware'
+import { postController } from '@/shared/services'
+import { validate } from '@/shared/infrastructure/middleware/validate.middleware'
+import { createPostSchema } from '@/modules/posts/application/dto/create-post.dto'
+import { authMiddleware } from '@/shared/infrastructure/middleware/auth.middleware'
 
 const router = Router()
-const postController = container.resolve(PostController)
 
 router.use(authMiddleware)
 

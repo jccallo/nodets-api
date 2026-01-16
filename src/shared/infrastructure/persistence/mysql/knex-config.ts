@@ -1,5 +1,5 @@
 import type { Knex } from 'knex'
-import { env } from '../../../env'
+import { env } from '@/shared/env'
 
 const config: { [key: string]: Knex.Config } = {
    development: {

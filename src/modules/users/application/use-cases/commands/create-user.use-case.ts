@@ -1,11 +1,11 @@
-import { UserRepository } from '../../../domain/repositories/user.repository'
-import { CreateUserDTO } from '../../dto'
-import { User } from '../../../domain/entities/user.model'
-import { AppError } from '../../../../../shared/errors/app-error'
-import { HttpStatus } from '../../../../../shared/http-status'
+import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
+import { CreateUserDTO } from '@/modules/users/application/dto'
+import { User } from '@/modules/users/domain/entities/user.model'
+import { AppError } from '@/shared/errors/app-error'
+import { HttpStatus } from '@/shared/http-status'
 
-import { UserRole } from '../../../domain/enums/user-role.enum'
-import { UserStatus } from '../../../domain/enums/user-status.enum'
+import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
+import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 import bcrypt from 'bcryptjs'
 
 export class CreateUserUseCase {

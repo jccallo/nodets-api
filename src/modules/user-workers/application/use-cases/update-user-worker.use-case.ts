@@ -1,6 +1,6 @@
-import { IUserWorkerRepository } from '../../domain/user-worker.repository'
-import { IUserWorker } from '../../domain/user-worker.model'
-import { IUpdateUserWorkerDTO } from '../dto'
+import { IUserWorkerRepository } from '@/modules/user-workers/domain/user-worker.repository'
+import { IUserWorker } from '@/modules/user-workers/domain/user-worker.model'
+import { IUpdateUserWorkerDTO } from '@/modules/user-workers/application/dto'
 
 export class UpdateUserWorkerUseCase {
    constructor(private userWorkerRepository: IUserWorkerRepository) {}

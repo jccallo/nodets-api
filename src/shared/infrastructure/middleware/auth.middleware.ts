@@ -1,23 +1,23 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { env } from '../../env'
-import { AppError } from '../../errors/app-error'
-import { HttpStatus } from '../../http-status'
+import { env } from '@/shared/env'
+import { AppError } from '@/shared/errors/app-error'
+import { HttpStatus } from '@/shared/http-status'
 
 export const authMiddleware = (req: Request, _res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization
+   const authHeader = req.headers.authorization
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new AppError('No se proporcionó un token de autenticación', HttpStatus.UNAUTHORIZED)
-  }
+   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new AppError('No se proporcionó un token de autenticación', HttpStatus.UNAUTHORIZED)
+   }
 
-  const token = authHeader.split(' ')[1]
+   const token = authHeader.split(' ')[1]
 
-  try {
-    const decoded = jwt.verify(token, env.jwtSecret)
-    ;(req as any).user = decoded
-    next()
-  } catch (error) {
-    throw new AppError('Token de autenticación inválido o expirado', HttpStatus.UNAUTHORIZED)
-  }
+   try {
+      const decoded = jwt.verify(token, env.jwtSecret)
+      ;(req as any).user = decoded
+      next()
+   } catch (error) {
+      throw new AppError('Token de autenticación inválido o expirado', HttpStatus.UNAUTHORIZED)
+   }
 }

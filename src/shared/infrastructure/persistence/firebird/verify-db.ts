@@ -1,4 +1,4 @@
-import { firebirdDb } from './connection'
+import { firebirdDb } from '@/shared/infrastructure/persistence/firebird/connection'
 
 async function verifyFirebird() {
    try {

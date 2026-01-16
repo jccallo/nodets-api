@@ -1,7 +1,7 @@
 import http from 'http'
 import { Server } from 'socket.io'
-import { createApp } from './app'
-import { registerSocketHandler } from '../modules/chat/infrastructure/socket.handler'
+import { createApp } from '@/app/app'
+import { registerSocketHandler } from '@/modules/chat/infrastructure/socket.handler'
 
 export function startServer(port: number) {
    const app = createApp()

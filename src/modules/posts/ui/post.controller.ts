@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import { HttpStatus } from '../../../shared/http-status'
-import { createPostUseCase, getPostsByUserUseCase } from '../../../shared/services'
-import { PostMapper } from '../infrastructure/mappers/post.mapper'
+import { HttpStatus } from '@/shared/http-status'
+import { createPostUseCase, getPostsByUserUseCase } from '@/shared/services'
+import { PostMapper } from '@/modules/posts/infrastructure/mappers/post.mapper'
 
 export class PostController {
    create = async (req: Request, res: Response) => {

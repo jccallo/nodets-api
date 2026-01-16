@@ -1,4 +1,4 @@
-import { Post } from '../entities/post.model'
+import { Post } from '@/modules/posts/domain/entities/post.model'
 
 export interface PostRepository {
    save(post: Post): Promise<Post>

@@ -1,5 +1,5 @@
-import { UserRole } from '../enums/user-role.enum'
-import { UserStatus } from '../enums/user-status.enum'
+import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
+import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 
 export class User {
    public id?: string

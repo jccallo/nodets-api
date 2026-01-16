@@ -1,13 +1,13 @@
 import { Request, Response } from 'express'
-import { HttpStatus } from '../../../shared/http-status'
+import { HttpStatus } from '@/shared/http-status'
 import {
    createUserUseCase,
    updateUserUseCase,
    deleteUserUseCase,
    getAllUsersUseCase,
    getUserByIdUseCase,
-} from '../../../shared/services'
-import { UserMapper } from '../infrastructure/mappers/user.mapper'
+} from '@/shared/services'
+import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
 
 export class UserController {
    getAll = async (_req: Request, res: Response) => {

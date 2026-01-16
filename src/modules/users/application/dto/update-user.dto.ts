@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createUserSchema } from './create-user.dto'
+import { createUserSchema } from '@/modules/users/application/dto/create-user.dto'
 
 export const updateUserSchema = createUserSchema.partial()
 

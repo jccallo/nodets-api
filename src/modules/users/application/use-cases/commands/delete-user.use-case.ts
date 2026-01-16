@@ -1,6 +1,6 @@
-import { UserRepository } from '../../../domain/repositories/user.repository'
-import { AppError } from '../../../../../shared/errors/app-error'
-import { HttpStatus } from '../../../../../shared/http-status'
+import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
+import { AppError } from '@/shared/errors/app-error'
+import { HttpStatus } from '@/shared/http-status'
 
 export class DeleteUserUseCase {
    constructor(private userRepository: UserRepository) {}

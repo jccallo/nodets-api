@@ -1,6 +1,6 @@
-import { User } from '../../domain/entities/user.model'
-import { UserStatus } from '../../domain/enums/user-status.enum'
-import { UserResponseDTO } from '../../application/dto/user-response.dto'
+import { User } from '@/modules/users/domain/entities/user.model'
+import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
+import { UserResponseDTO } from '@/modules/users/application/dto/user-response.dto'
 
 export class UserMapper {
    static toDomain(row: any): User {

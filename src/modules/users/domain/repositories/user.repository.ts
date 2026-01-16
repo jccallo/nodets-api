@@ -1,4 +1,4 @@
-import { User } from '../entities/user.model'
+import { User } from '@/modules/users/domain/entities/user.model'
 
 export interface UserRepository {
    save(user: User): Promise<User>

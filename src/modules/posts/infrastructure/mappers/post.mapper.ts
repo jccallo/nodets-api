@@ -1,4 +1,4 @@
-import { Post } from '../../domain/entities/post.model'
+import { Post } from '@/modules/posts/domain/entities/post.model'
 
 export class PostMapper {
    static toDomain(row: any): Post {

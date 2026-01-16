@@ -1,6 +1,6 @@
-import { eventBus } from '../../../../shared/infrastructure/events/event-bus'
-import { User } from '../../../users/domain/entities/user.model'
-import { CreatePostUseCase } from '../use-cases/create-post.use-case'
+import { eventBus } from '@/shared/infrastructure/events/event-bus'
+import { User } from '@/modules/users/domain/entities/user.model'
+import { CreatePostUseCase } from '@/modules/posts/application/use-cases/create-post.use-case'
 
 export class PostSubscriber {
    constructor(private createPostUseCase: CreatePostUseCase) {

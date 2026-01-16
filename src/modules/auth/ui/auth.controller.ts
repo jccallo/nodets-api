@@ -1,10 +1,7 @@
 import { Request, Response } from 'express'
-import { HttpStatus } from '../../../shared/http-status'
-import { LoginUseCase } from '../application/use-cases'
+import { HttpStatus } from '@/shared/http-status'
+import { LoginUseCase } from '@/modules/auth/application/use-cases'
 
-import { autoInjectable } from 'tsyringe'
-
-@autoInjectable()
 export class AuthController {
    constructor(private loginUseCase: LoginUseCase) {}
 

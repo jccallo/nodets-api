@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { AppError } from './app-error'
-import { HttpStatus } from '../http-status'
+import { AppError } from '@/shared/errors/app-error'
+import { HttpStatus } from '@/shared/http-status'
 
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction) {
    // Errores controlados

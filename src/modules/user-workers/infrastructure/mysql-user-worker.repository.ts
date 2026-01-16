@@ -1,5 +1,5 @@
-import { IUserWorkerRepository } from '../domain/user-worker.repository'
-import { IUserWorker } from '../domain/user-worker.model'
+import { IUserWorkerRepository } from '@/modules/user-workers/domain/user-worker.repository'
+import { IUserWorker } from '@/modules/user-workers/domain/user-worker.model'
 
 export class MySQLUserWorkerRepository implements IUserWorkerRepository {
    async create(userWorker: IUserWorker): Promise<IUserWorker> {

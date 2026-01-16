@@ -1,14 +1,11 @@
 import { Router } from 'express'
-import { AuthController } from './auth.controller'
-import { validate } from '../../../shared/infrastructure/middleware/validate.middleware'
-import { loginSchema } from '../application/dto'
-import { LoginUseCase } from '../application/use-cases'
-import { container } from 'tsyringe'
+import { validate } from '@/shared/infrastructure/middleware/validate.middleware'
+import { loginSchema } from '@/modules/auth/application/dto'
+import { authController } from '@/shared/services'
 
 const router = Router()
 
-// Controller resolved by container
-const authController = container.resolve(AuthController)
+// Controller resolved from global services
 
 // Routes
 router.post('/login', validate(loginSchema), authController.login)

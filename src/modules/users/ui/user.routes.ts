@@ -1,15 +1,12 @@
 import { Router } from 'express'
-import { UserController } from './user.controller'
-import { validate } from '../../../shared/infrastructure/middleware/validate.middleware'
-import { createUserSchema, updateUserSchema } from '../application/dto'
+import { userController } from '@/shared/services'
+import { validate } from '@/shared/infrastructure/middleware/validate.middleware'
+import { createUserSchema, updateUserSchema } from '@/modules/users/application/dto'
 import { authMiddleware } from '@/shared/infrastructure/middleware/auth.middleware'
-
-import { container } from 'tsyringe'
 
 const router = Router()
 
-// Controller resolved by container
-const userController = container.resolve(UserController)
+// Controller resolved from global services
 
 // Public routes
 router.post('/', validate(createUserSchema), userController.create)

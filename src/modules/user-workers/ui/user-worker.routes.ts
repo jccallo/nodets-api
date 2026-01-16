@@ -1,14 +1,14 @@
 import { Router } from 'express'
-import { UserWorkerController } from './user-worker.controller'
-import { validate } from '../../../shared/infrastructure/middleware/validate.middleware'
-import { MySQLUserWorkerRepository } from '../infrastructure/mysql-user-worker.repository'
+import { UserWorkerController } from '@/modules/user-workers/ui/user-worker.controller'
+import { validate } from '@/shared/infrastructure/middleware/validate.middleware'
+import { MySQLUserWorkerRepository } from '@/modules/user-workers/infrastructure/mysql-user-worker.repository'
 import {
    CreateUserWorkerUseCase,
    UpdateUserWorkerUseCase,
    DeleteUserWorkerUseCase,
    GetAllUserWorkersUseCase,
    GetUserWorkerByIdUseCase,
-} from '../application/use-cases'
+} from '@/modules/user-workers/application/use-cases'
 
 import { authMiddleware } from '@/shared/infrastructure/middleware/auth.middleware'
 

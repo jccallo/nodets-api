@@ -1,5 +1,5 @@
-import { eventBus } from '../../../../shared/infrastructure/events/event-bus'
-import { User } from '../../domain/entities/user.model'
+import { eventBus } from '@/shared/infrastructure/events/event-bus'
+import { User } from '@/modules/users/domain/entities/user.model'
 
 export class UserSubscriber {
    constructor() {

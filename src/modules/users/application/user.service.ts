@@ -1,14 +1,15 @@
-import { CreateUserDTO, LoginDTO, UpdateUserDTO } from './dto'
-import { UserRepository } from '../domain/repositories/user.repository'
-import { User } from '../domain/entities/user.model'
-import { AppError } from '../../../shared/errors/app-error'
-import { HttpStatus } from '../../../shared/http-status'
+import { CreateUserDTO, UpdateUserDTO } from '@/modules/users/application/dto'
+import { LoginDTO } from '@/modules/auth/application/dto'
+import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
+import { User } from '@/modules/users/domain/entities/user.model'
+import { AppError } from '@/shared/errors/app-error'
+import { HttpStatus } from '@/shared/http-status'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { env } from '../../../shared/env'
+import { env } from '@/shared/env'
 import { v4 as uuidv4 } from 'uuid'
-import { UserRole } from '../domain/enums/user-role.enum'
-import { UserStatus } from '../domain/enums/user-status.enum'
+import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
+import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 
 export class UserService {
    constructor(private userRepository: UserRepository) {}
@@ -33,15 +34,15 @@ export class UserService {
 
       const hashedPassword = await bcrypt.hash(data.password, 10)
 
-      const newUser = new User(
-         uuidv4(), // We need uuid here now
-         data.email,
-         data.name,
-         hashedPassword,
-         [UserRole.USER],
-         UserStatus.ACTIVE,
-         new Date()
-      )
+      const newUser = new User({
+         id: uuidv4(),
+         email: data.email,
+         name: data.name,
+         password: hashedPassword,
+         roles: [UserRole.USER],
+         status: UserStatus.ACTIVE,
+         createdAt: new Date(),
+      })
 
       return await this.userRepository.save(newUser)
    }
@@ -76,15 +77,15 @@ export class UserService {
          }
       }
 
-      const updatedUser = new User(
-         currentUser.id,
-         data.email || currentUser.email,
-         data.name || currentUser.name,
-         data.password ? await bcrypt.hash(data.password, 10) : currentUser.password,
-         currentUser.roles,
-         currentUser.status,
-         currentUser.createdAt
-      )
+      const updatedUser = new User({
+         id: currentUser.id,
+         email: data.email || currentUser.email,
+         name: data.name || currentUser.name,
+         password: data.password ? await bcrypt.hash(data.password, 10) : currentUser.password,
+         roles: currentUser.roles,
+         status: currentUser.status,
+         createdAt: currentUser.createdAt,
+      })
 
       await this.userRepository.update(id, updatedUser)
       return updatedUser
