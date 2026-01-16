@@ -10,23 +10,22 @@ export class MySQLUserRepository implements UserRepository {
    constructor(@inject('KnexConnection') private db: Knex) {}
 
    async save(user: User): Promise<User> {
-      const exists = await this.findById(user.id.value())
-      const raw = user.getRaw()
+      const exists = user.id ? await this.findById(user.id) : null
 
       if (exists) {
-         await this.db('users').where({ id: user.id.value() }).update({
-            email: raw.email,
-            name: raw.name,
-            password: raw.password,
+         await this.db('users').where({ id: user.id }).update({
+            email: user.email,
+            name: user.name,
+            password: user.password,
             updated_at: new Date(),
          })
       } else {
          await this.db('users').insert({
-            id: user.id.value(),
-            email: raw.email,
-            name: raw.name,
-            password: raw.password,
-            created_at: raw.createdAt || new Date(),
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            password: user.password,
+            created_at: user.createdAt || new Date(),
             updated_at: new Date(),
          })
 
@@ -53,11 +52,10 @@ export class MySQLUserRepository implements UserRepository {
    }
 
    async update(id: string, user: User): Promise<void> {
-      const raw = user.getRaw()
       await this.db('users').where({ id }).update({
-         email: raw.email,
-         name: raw.name,
-         password: raw.password,
+         email: user.email,
+         name: user.name,
+         password: user.password,
          updated_at: new Date(),
       })
    }

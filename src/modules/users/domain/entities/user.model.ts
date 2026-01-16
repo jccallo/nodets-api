@@ -1,40 +1,33 @@
-import { Aggregate, ID, Result, EntityProps, UID } from 'types-ddd'
 import { UserRole } from '../enums/user-role.enum'
 import { UserStatus } from '../enums/user-status.enum'
 
-export type UserProps = EntityProps & {
-   email: string
-   name: string
-   password: string
-   roles: UserRole[]
-   status: UserStatus
-   id?: string
-   createdAt?: Date
-   updatedAt?: Date
-}
+export class User {
+   public id?: string
+   public email: string
+   public name: string
+   public password: string
+   public roles: UserRole[]
+   public status: UserStatus
+   public createdAt?: Date
+   public updatedAt?: Date
 
-export class User extends Aggregate<UserProps> {
-   private constructor(props: UserProps) {
-      super(props)
-   }
-
-   public static create(props: UserProps, id?: UID<string>): Result<User> {
-      return Result.Ok(new User({ ...props, id: id?.value() }))
-   }
-
-   get email(): string {
-      return this.props.email
-   }
-   get name(): string {
-      return this.props.name
-   }
-   get password(): string {
-      return this.props.password
-   }
-   get roles(): UserRole[] {
-      return this.props.roles
-   }
-   get status(): UserStatus {
-      return this.props.status
+   constructor(props: {
+      email: string
+      name: string
+      password: string
+      roles: UserRole[]
+      status: UserStatus
+      id?: string
+      createdAt?: Date
+      updatedAt?: Date
+   }) {
+      this.id = props.id
+      this.email = props.email
+      this.name = props.name
+      this.password = props.password
+      this.roles = props.roles
+      this.status = props.status
+      this.createdAt = props.createdAt
+      this.updatedAt = props.updatedAt
    }
 }

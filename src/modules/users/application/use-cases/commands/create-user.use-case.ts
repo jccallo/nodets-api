@@ -22,7 +22,7 @@ export class CreateUserUseCase {
 
       const hashedPassword = await bcrypt.hash(data.password, 10)
 
-      const newUserResult = User.create({
+      const newUser = new User({
          email: data.email,
          name: data.name,
          password: hashedPassword,
@@ -31,10 +31,6 @@ export class CreateUserUseCase {
          createdAt: new Date(),
       })
 
-      if (newUserResult.isFail()) {
-         throw new AppError(newUserResult.error(), HttpStatus.INTERNAL_SERVER_ERROR)
-      }
-
-      return await this.userRepository.save(newUserResult.value())
+      return await this.userRepository.save(newUser)
    }
 }

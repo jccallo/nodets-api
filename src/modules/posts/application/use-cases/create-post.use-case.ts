@@ -10,7 +10,7 @@ export class CreatePostUseCase {
    constructor(@inject('PostRepository') private postRepository: PostRepository) {}
 
    async execute(userId: string, data: CreatePostDTO): Promise<Post> {
-      const postOrError = Post.create({
+      const post = new Post({
          title: data.title,
          content: data.content,
          userId,
@@ -18,10 +18,6 @@ export class CreatePostUseCase {
          createdAt: new Date(),
       })
 
-      if (postOrError.isFail()) {
-         throw new AppError(postOrError.error(), HttpStatus.INTERNAL_SERVER_ERROR)
-      }
-
-      return this.postRepository.save(postOrError.value())
+      return this.postRepository.save(post)
    }
 }

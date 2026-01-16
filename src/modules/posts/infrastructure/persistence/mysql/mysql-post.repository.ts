@@ -9,24 +9,23 @@ export class MySQLPostRepository implements PostRepository {
    constructor(@inject('KnexConnection') private db: Knex) {}
 
    async save(post: Post): Promise<Post> {
-      const exists = await this.findById(post.id.value())
-      const raw = post.getRaw()
+      const exists = post.id ? await this.findById(post.id) : null
 
       if (exists) {
-         await this.db('posts').where({ id: post.id.value() }).update({
-            title: raw.title,
-            content: raw.content,
-            published: raw.published,
+         await this.db('posts').where({ id: post.id }).update({
+            title: post.title,
+            content: post.content,
+            published: post.published,
             updated_at: new Date(),
          })
       } else {
          await this.db('posts').insert({
-            id: post.id.value(),
-            title: raw.title,
-            content: raw.content,
-            userId: raw.userId,
-            published: raw.published,
-            created_at: raw.createdAt || new Date(),
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            userId: post.userId,
+            published: post.published,
+            created_at: post.createdAt || new Date(),
             updated_at: new Date(),
          })
       }
