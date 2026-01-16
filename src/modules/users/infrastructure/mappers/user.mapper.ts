@@ -11,8 +11,7 @@ export class UserMapper {
          password: row.password,
          roles: [], // Roles placeholder
          status: UserStatus.ACTIVE, // Status placeholder
-         createdAt: new Date(row.created_at),
-         updatedAt: new Date(row.updated_at),
+         createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
       })
    }
 

@@ -8,10 +8,10 @@ export interface UserFilters {
 }
 
 export interface UserRepository {
-   save(user: User): Promise<User>
-   findById(id: number | string): Promise<User | null>
-   findByEmail(email: string): Promise<User | null>
-   findAll(filters?: UserFilters): Promise<{ users: User[]; total: number }>
-   update(id: number | string, user: User): Promise<void>
-   delete(id: number | string): Promise<void>
+   save(user: User, trx?: any): Promise<User>
+   findById(id: number | string, trx?: any): Promise<User | null>
+   findByEmail(email: string, trx?: any): Promise<User | null>
+   findAll(filters?: UserFilters, trx?: any): Promise<{ users: User[]; total: number }>
+   update(id: number | string, user: User, trx?: any): Promise<void>
+   delete(id: number | string, trx?: any): Promise<void>
 }

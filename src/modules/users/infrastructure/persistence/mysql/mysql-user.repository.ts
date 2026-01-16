@@ -10,24 +10,27 @@ export class MySQLUserRepository implements UserRepository {
 
    constructor(private readonly db: Knex) {}
 
-   async save(user: User): Promise<User> {
-      const exists = user.id ? await this.findById(user.id) : null
+   private get dbConn() {
+      return this.db
+   }
+
+   async save(user: User, trx?: any): Promise<User> {
+      const conn = trx || this.db
+      const exists = user.id ? await this.findById(user.id, trx) : null
 
       if (exists) {
-         await this.db(this.tableName).where({ id: user.id }).update({
+         await conn(this.tableName).where({ id: user.id }).update({
             email: user.email,
             name: user.name,
             password: user.password,
-            updated_at: new Date(),
          })
       } else {
-         const [insertedId] = await this.db(this.tableName).insert({
+         const [insertedId] = await conn(this.tableName).insert({
             id: user.id,
             email: user.email,
             name: user.name,
             password: user.password,
-            created_at: user.createdAt || new Date(),
-            updated_at: new Date(),
+            createdAt: user.createdAt || new Date(),
          })
 
          if (!user.id) user.id = insertedId
@@ -39,20 +42,23 @@ export class MySQLUserRepository implements UserRepository {
       return user
    }
 
-   async findById(id: number | string): Promise<User | null> {
-      const row = await this.db(this.tableName).where({ id }).first()
+   async findById(id: number | string, trx?: any): Promise<User | null> {
+      const conn = trx || this.db
+      const row = await conn(this.tableName).where({ id }).first()
       return row ? UserMapper.toDomain(row) : null
    }
 
-   async findByEmail(email: string): Promise<User | null> {
-      const row = await this.db(this.tableName).where({ email }).first()
+   async findByEmail(email: string, trx?: any): Promise<User | null> {
+      const conn = trx || this.db
+      const row = await conn(this.tableName).where({ email }).first()
       return row ? UserMapper.toDomain(row) : null
    }
 
-   async findAll(filters: UserFilters = {}): Promise<{ users: User[]; total: number }> {
+   async findAll(filters: UserFilters = {}, trx?: any): Promise<{ users: User[]; total: number }> {
       const { name, email, page, limit } = filters
+      const conn = trx || this.db
 
-      const query = this.db(this.tableName).select('*')
+      const query = conn(this.tableName).select('*')
 
       if (name) query.where('name', 'like', `%${name}%`)
       if (email) query.where('email', 'like', `%${email}%`)
@@ -69,16 +75,17 @@ export class MySQLUserRepository implements UserRepository {
       }
    }
 
-   async update(id: number | string, user: User): Promise<void> {
-      await this.db(this.tableName).where({ id }).update({
+   async update(id: number | string, user: User, trx?: any): Promise<void> {
+      const conn = trx || this.db
+      await conn(this.tableName).where({ id }).update({
          email: user.email,
          name: user.name,
          password: user.password,
-         updated_at: new Date(),
       })
    }
 
-   async delete(id: number | string): Promise<void> {
-      await this.db(this.tableName).where({ id }).del()
+   async delete(id: number | string, trx?: any): Promise<void> {
+      const conn = trx || this.db
+      await conn(this.tableName).where({ id }).del()
    }
 }

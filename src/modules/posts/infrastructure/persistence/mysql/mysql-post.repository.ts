@@ -8,18 +8,19 @@ export class MySQLPostRepository implements PostRepository {
 
    constructor(private readonly db: Knex) {}
 
-   async save(post: Post): Promise<Post> {
-      const exists = post.id ? await this.findById(post.id) : null
+   async save(post: Post, trx?: any): Promise<Post> {
+      const conn = trx || this.db
+      const exists = post.id ? await this.findById(post.id, trx) : null
 
       if (exists) {
-         await this.db(this.tableName).where({ id: post.id }).update({
+         await conn(this.tableName).where({ id: post.id }).update({
             title: post.title,
             content: post.content,
             published: post.published,
             updated_at: new Date(),
          })
       } else {
-         await this.db(this.tableName).insert({
+         await conn(this.tableName).insert({
             id: post.id,
             title: post.title,
             content: post.content,
@@ -32,17 +33,20 @@ export class MySQLPostRepository implements PostRepository {
       return post
    }
 
-   async findById(id: number | string): Promise<Post | null> {
-      const row = await this.db(this.tableName).where({ id }).first()
+   async findById(id: number | string, trx?: any): Promise<Post | null> {
+      const conn = trx || this.db
+      const row = await conn(this.tableName).where({ id }).first()
       return row ? PostMapper.toDomain(row) : null
    }
 
-   async findByUserId(userId: number | string): Promise<Post[]> {
-      const rows = await this.db(this.tableName).where({ userId })
+   async findByUserId(userId: number | string, trx?: any): Promise<Post[]> {
+      const conn = trx || this.db
+      const rows = await conn(this.tableName).where({ userId })
       return rows.map((row: any) => PostMapper.toDomain(row))
    }
 
-   async delete(id: number | string): Promise<void> {
-      await this.db(this.tableName).where({ id }).del()
+   async delete(id: number | string, trx?: any): Promise<void> {
+      const conn = trx || this.db
+      await conn(this.tableName).where({ id }).del()
    }
 }
