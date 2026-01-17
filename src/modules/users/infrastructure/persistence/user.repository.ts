@@ -1,11 +1,11 @@
-import { UserRepository, UserFilters } from '@/modules/users/domain/repositories/user.repository'
+import { UserRepository as IUserRepository, UserFilters } from '@/modules/users/domain/repositories/user.repository'
 import { User } from '@/modules/users/domain/entities/user.model'
 import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
 
 import { KnexPaginator } from '@/shared/infrastructure/persistence/drivers/mysql/knex-paginator'
 import { DB } from '@/shared/infrastructure/persistence/db'
 
-export class MySQLUserRepository implements UserRepository {
+export class UserRepository implements IUserRepository {
    private readonly tableName = 'users'
 
    async save(user: User): Promise<User> {

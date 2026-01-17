@@ -1,4 +1,4 @@
-import { MySQLUserRepository } from '@/modules/users/infrastructure/persistence/mysql/mysql-user.repository'
+import { UserRepository } from '@/modules/users/infrastructure/persistence/user.repository'
 import { CreateUserUseCase } from '@/modules/users/application/use-cases/commands/create-user.use-case'
 import { UpdateUserUseCase } from '@/modules/users/application/use-cases/commands/update-user.use-case'
 import { DeleteUserUseCase } from '@/modules/users/application/use-cases/commands/delete-user.use-case'
@@ -8,7 +8,7 @@ import { UserSubscriber } from '@/modules/users/application/subscribers/user.sub
 import { UserController } from '@/modules/users/ui/user.controller'
 import { welcomeEmailWorker } from '@/modules/users/application/workers/welcome-email.worker'
 
-export const userRepository = new MySQLUserRepository()
+export const userRepository = new UserRepository()
 export const createUserUseCase = new CreateUserUseCase(userRepository)
 export const updateUserUseCase = new UpdateUserUseCase(userRepository)
 export const deleteUserUseCase = new DeleteUserUseCase(userRepository)
