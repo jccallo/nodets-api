@@ -1,12 +1,13 @@
 import { Knex } from 'knex'
 import { UnitOfWork } from '@/shared/domain/persistence/unit-of-work.interface'
+import { TransactionContext } from '@/shared/infrastructure/persistence/transaction-context'
 
 export class KnexUnitOfWork implements UnitOfWork {
    constructor(private readonly db: Knex) {}
 
-   async transaction<T>(work: (trx: Knex.Transaction) => Promise<T>): Promise<T> {
+   async transaction<T>(work: () => Promise<T>): Promise<T> {
       return this.db.transaction(async (trx) => {
-         return await work(trx)
+         return TransactionContext.run(trx, work)
       })
    }
 }

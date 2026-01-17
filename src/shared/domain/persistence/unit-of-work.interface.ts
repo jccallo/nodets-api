@@ -1,3 +1,3 @@
 export interface UnitOfWork {
-   transaction<T>(work: (trx: any) => Promise<T>): Promise<T>
+   transaction<T>(work: () => Promise<T>): Promise<T>
 }

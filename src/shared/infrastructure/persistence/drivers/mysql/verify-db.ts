@@ -1,4 +1,4 @@
-import { db } from '@/shared/infrastructure/persistence/mysql/connection'
+import { db } from './connection'
 
 async function verifyConnection() {
    try {

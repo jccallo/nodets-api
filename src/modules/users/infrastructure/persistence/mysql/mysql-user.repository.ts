@@ -1,31 +1,24 @@
 import { UserRepository, UserFilters } from '@/modules/users/domain/repositories/user.repository'
 import { User } from '@/modules/users/domain/entities/user.model'
 import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
-import { Knex } from 'knex'
 
-import { KnexPaginator } from '@/shared/infrastructure/persistence/mysql/knex-paginator'
+import { KnexPaginator } from '@/shared/infrastructure/persistence/drivers/mysql/knex-paginator'
+import { DB } from '@/shared/infrastructure/persistence/db'
 
 export class MySQLUserRepository implements UserRepository {
    private readonly tableName = 'users'
 
-   constructor(private readonly db: Knex) {}
-
-   private get dbConn() {
-      return this.db
-   }
-
-   async save(user: User, trx?: any): Promise<User> {
-      const conn = trx || this.db
-      const exists = user.id ? await this.findById(user.id, trx) : null
+   async save(user: User): Promise<User> {
+      const exists = user.id ? await this.findById(user.id) : null
 
       if (exists) {
-         await conn(this.tableName).where({ id: user.id }).update({
+         await DB.table(this.tableName).where({ id: user.id }).update({
             email: user.email,
             name: user.name,
             password: user.password,
          })
       } else {
-         const [insertedId] = await conn(this.tableName).insert({
+         const [insertedId] = await DB.table(this.tableName).insert({
             id: user.id,
             email: user.email,
             name: user.name,
@@ -39,23 +32,20 @@ export class MySQLUserRepository implements UserRepository {
       return user
    }
 
-   async findById(id: number | string, trx?: any): Promise<User | null> {
-      const conn = trx || this.db
-      const row = await conn(this.tableName).where({ id }).first()
+   async findById(id: number | string): Promise<User | null> {
+      const row = await DB.table(this.tableName).where({ id }).first()
       return row ? UserMapper.toDomain(row) : null
    }
 
-   async findByEmail(email: string, trx?: any): Promise<User | null> {
-      const conn = trx || this.db
-      const row = await conn(this.tableName).where({ email }).first()
+   async findByEmail(email: string): Promise<User | null> {
+      const row = await DB.table(this.tableName).where({ email }).first()
       return row ? UserMapper.toDomain(row) : null
    }
 
-   async findAll(filters: UserFilters = {}, trx?: any): Promise<{ users: User[]; total: number }> {
+   async findAll(filters: UserFilters = {}): Promise<{ users: User[]; total: number }> {
       const { name, email, page, limit } = filters
-      const conn = trx || this.db
 
-      const query = conn(this.tableName).select('*')
+      const query = DB.table(this.tableName).select('*')
 
       if (name) query.where('name', 'like', `%${name}%`)
       if (email) query.where('email', 'like', `%${email}%`)
@@ -72,17 +62,15 @@ export class MySQLUserRepository implements UserRepository {
       }
    }
 
-   async update(id: number | string, user: User, trx?: any): Promise<void> {
-      const conn = trx || this.db
-      await conn(this.tableName).where({ id }).update({
+   async update(id: number | string, user: User): Promise<void> {
+      await DB.table(this.tableName).where({ id }).update({
          email: user.email,
          name: user.name,
          password: user.password,
       })
    }
 
-   async delete(id: number | string, trx?: any): Promise<void> {
-      const conn = trx || this.db
-      await conn(this.tableName).where({ id }).del()
+   async delete(id: number | string): Promise<void> {
+      await DB.table(this.tableName).where({ id }).del()
    }
 }

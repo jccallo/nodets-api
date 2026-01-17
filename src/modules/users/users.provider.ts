@@ -1,5 +1,3 @@
-import { db } from '@/shared/infrastructure/persistence/mysql/connection'
-import { unitOfWork } from '@/shared/infrastructure/persistence/mysql/unit-of-work.provider'
 import { MySQLUserRepository } from '@/modules/users/infrastructure/persistence/mysql/mysql-user.repository'
 import { CreateUserUseCase } from '@/modules/users/application/use-cases/commands/create-user.use-case'
 import { UpdateUserUseCase } from '@/modules/users/application/use-cases/commands/update-user.use-case'
@@ -10,9 +8,8 @@ import { UserSubscriber } from '@/modules/users/application/subscribers/user.sub
 import { UserController } from '@/modules/users/ui/user.controller'
 import { welcomeEmailWorker } from '@/modules/users/application/workers/welcome-email.worker'
 
-export const userRepository = new MySQLUserRepository(db)
-
-export const createUserUseCase = new CreateUserUseCase(unitOfWork, userRepository)
+export const userRepository = new MySQLUserRepository()
+export const createUserUseCase = new CreateUserUseCase(userRepository)
 export const updateUserUseCase = new UpdateUserUseCase(userRepository)
 export const deleteUserUseCase = new DeleteUserUseCase(userRepository)
 export const getUserByIdUseCase = new GetUserByIdUseCase(userRepository)

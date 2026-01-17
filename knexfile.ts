@@ -1,6 +1,9 @@
 import type { Knex } from 'knex'
-import config from './src/shared/infrastructure/persistence/mysql/knex-config'
+import { dbConfig } from './src/shared/infrastructure/persistence/config/database'
 
-const knexConfig: { [key: string]: Knex.Config } = config
+const knexConfig: { [key: string]: Knex.Config } = {
+   development: dbConfig,
+   production: dbConfig,
+}
 
 export default knexConfig

@@ -12,7 +12,7 @@ import {
 
 import { authMiddleware } from '@/shared/infrastructure/middleware/auth.middleware'
 
-import { db } from '@/shared/infrastructure/persistence/mysql/connection'
+import { db } from '@/shared/infrastructure/persistence/drivers/mysql/connection'
 
 const router = Router()
 
@@ -32,7 +32,7 @@ const userWorkerController = new UserWorkerController(
    updateUserWorkerUseCase,
    deleteUserWorkerUseCase,
    getAllUserWorkersUseCase,
-   getUserWorkerByIdUseCase
+   getUserWorkerByIdUseCase,
 )
 
 // Public routes

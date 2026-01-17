@@ -1,4 +1,4 @@
-import { UnitOfWork } from '@/shared/domain/persistence/unit-of-work.interface'
+import { DB } from '@/shared/infrastructure/persistence/db'
 import { eventBus } from '@/shared/infrastructure/events/event-bus'
 import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
 import { CreateUserDTO } from '@/modules/users/application/dto'
@@ -11,14 +11,11 @@ import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 import bcrypt from 'bcryptjs'
 
 export class CreateUserUseCase {
-   constructor(
-      private unitOfWork: UnitOfWork,
-      private userRepository: UserRepository,
-   ) {}
+   constructor(private userRepository: UserRepository) {}
 
    async execute(data: CreateUserDTO): Promise<User> {
-      return this.unitOfWork.transaction(async (trx) => {
-         const existingUser = await this.userRepository.findByEmail(data.email, trx)
+      return DB.transaction(async () => {
+         const existingUser = await this.userRepository.findByEmail(data.email)
          if (existingUser) {
             throw new AppError('El email ya está registrado', HttpStatus.BAD_REQUEST)
          }
@@ -34,7 +31,7 @@ export class CreateUserUseCase {
             createdAt: new Date(),
          })
 
-         const savedUser = await this.userRepository.save(newUser, trx)
+         const savedUser = await this.userRepository.save(newUser)
 
          // Evento movido desde el Repositorio (Mejor práctica: Side Effects en Use Case)
          eventBus.emit('user.created', { user: savedUser })

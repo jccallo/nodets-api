@@ -1,7 +1,7 @@
 import { IUserWorkerRepository, UserWorkerFilters } from '@/modules/user-workers/domain/user-worker.repository'
 import { IUserWorker } from '@/modules/user-workers/domain/user-worker.model'
 import { Knex } from 'knex'
-import { KnexPaginator } from '@/shared/infrastructure/persistence/mysql/knex-paginator'
+import { KnexPaginator } from '@/shared/infrastructure/persistence/drivers/mysql/knex-paginator'
 
 export class MySQLUserWorkerRepository implements IUserWorkerRepository {
    private readonly tableName = 'user_workers'

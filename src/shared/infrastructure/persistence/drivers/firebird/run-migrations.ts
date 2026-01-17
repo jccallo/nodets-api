@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import { firebirdDb } from '@/shared/infrastructure/persistence/firebird/connection'
+import { firebirdDb } from '@/shared/infrastructure/persistence/drivers/firebird/connection'
 
-const MIGRATIONS_DIR = path.join(__dirname, 'migrations')
+const MIGRATIONS_DIR = path.join(__dirname, '../../migrations')
 const LOG_TABLE = 'FB_MIGRATIONS_LOG'
 
 async function runMigrations() {
