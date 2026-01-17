@@ -2,7 +2,6 @@ import { UserRepository as IUserRepository, UserFilters } from '@/modules/users/
 import { User } from '@/modules/users/domain/entities/user.model'
 import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
 
-import { KnexPaginator } from '@/shared/infrastructure/persistence/drivers/mysql/knex-paginator'
 import { DB } from '@/shared/infrastructure/persistence/db'
 
 export class UserRepository implements IUserRepository {
@@ -50,7 +49,7 @@ export class UserRepository implements IUserRepository {
       if (name) query.where('name', 'like', `%${name}%`)
       if (email) query.where('email', 'like', `%${email}%`)
 
-      const { data, meta } = await KnexPaginator.paginate<any>({
+      const { data, meta } = await DB.paginate<any>({
          query,
          page,
          limit,

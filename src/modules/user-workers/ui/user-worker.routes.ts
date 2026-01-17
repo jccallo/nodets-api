@@ -12,7 +12,7 @@ import {
 
 import { authMiddleware } from '@/shared/infrastructure/middleware/auth.middleware'
 
-import { db } from '@/shared/infrastructure/persistence/drivers/mysql/connection'
+import { db } from '@/shared/infrastructure/persistence/connection'
 
 const router = Router()
 

@@ -1,7 +1,7 @@
 import { IUserWorkerRepository, UserWorkerFilters } from '@/modules/user-workers/domain/user-worker.repository'
 import { IUserWorker } from '@/modules/user-workers/domain/user-worker.model'
 import { Knex } from 'knex'
-import { KnexPaginator } from '@/shared/infrastructure/persistence/drivers/mysql/knex-paginator'
+import { DB } from '@/shared/infrastructure/persistence/db'
 
 export class MySQLUserWorkerRepository implements IUserWorkerRepository {
    private readonly tableName = 'user_workers'
@@ -29,7 +29,7 @@ export class MySQLUserWorkerRepository implements IUserWorkerRepository {
 
       if (name) query.where('name', 'like', `%${name}%`)
 
-      const { data, meta } = await KnexPaginator.paginate<IUserWorker>({
+      const { data, meta } = await DB.paginate<IUserWorker>({
          query,
          page,
          limit,

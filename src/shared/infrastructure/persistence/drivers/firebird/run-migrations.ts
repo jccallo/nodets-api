@@ -1,8 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import { firebirdDb } from '@/shared/infrastructure/persistence/drivers/firebird/connection'
+import knex from 'knex'
+import { connections } from '@/shared/infrastructure/persistence/config/database'
 
-const MIGRATIONS_DIR = path.join(__dirname, '../../migrations')
+const firebirdDb = knex(connections.firebird)
+
+const MIGRATIONS_DIR = path.join(__dirname, '../../migrations/firebird')
 const LOG_TABLE = 'FB_MIGRATIONS_LOG'
 
 async function runMigrations() {

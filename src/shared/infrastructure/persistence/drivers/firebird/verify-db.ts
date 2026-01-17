@@ -1,4 +1,7 @@
-import { firebirdDb } from './connection'
+import knex from 'knex'
+import { connections } from '@/shared/infrastructure/persistence/config/database'
+
+const firebirdDb = knex(connections.firebird)
 
 async function verifyFirebird() {
    try {

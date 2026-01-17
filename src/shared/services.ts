@@ -2,5 +2,4 @@
 export * from '../modules/users/users.provider'
 export * from '../modules/posts/posts.provider'
 export * from '../modules/auth/auth.provider'
-export { unitOfWork } from './infrastructure/persistence/drivers/mysql/unit-of-work.provider'
 export { logger } from './infrastructure/logging/logger.provider'
