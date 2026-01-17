@@ -1,5 +1,6 @@
 import { Worker, Job } from 'bullmq'
 import { redisConnection } from '@/shared/infrastructure/queue/redis.connection'
+import { logger } from '@/shared/services'
 
 export const welcomeEmailWorker = new Worker(
    'email-queue',
@@ -7,18 +8,18 @@ export const welcomeEmailWorker = new Worker(
       if (job.name === 'welcome-email') {
          const { email, name } = job.data
 
-         console.log(`[Worker] ✨ Procesando tarea: bienvenido a ${name} (${email})`)
+         logger.info(`✨ Procesando tarea: bienvenido a ${name} (${email})`, { job: job.id })
 
          // Simulación de envío pesado (3 segundos)
          await new Promise((resolve) => setTimeout(resolve, 3000))
 
-         console.log(`[Worker] ✅ Correo enviado con éxito a: ${email}`)
+         logger.info(`✅ Correo enviado con éxito a: ${email}`)
       }
    },
-   { connection: redisConnection }
+   { connection: redisConnection },
 )
 
 // Loguear errores del worker
 welcomeEmailWorker.on('failed', (job, err) => {
-   console.error(`[Worker] ❌ Error en tarea ${job?.id}: ${err.message}`)
+   logger.error(`❌ Error en tarea ${job?.id}: ${err.message}`, err.stack)
 })

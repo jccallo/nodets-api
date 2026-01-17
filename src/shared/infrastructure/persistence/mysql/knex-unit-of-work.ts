@@ -1,5 +1,5 @@
 import { Knex } from 'knex'
-import { UnitOfWork } from '@/shared/domain/unit-of-work.interface'
+import { UnitOfWork } from '@/shared/domain/persistence/unit-of-work.interface'
 
 export class KnexUnitOfWork implements UnitOfWork {
    constructor(private readonly db: Knex) {}

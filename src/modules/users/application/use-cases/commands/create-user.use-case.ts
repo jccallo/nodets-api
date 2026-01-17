@@ -1,4 +1,5 @@
-import { UnitOfWork } from '@/shared/domain/unit-of-work.interface'
+import { UnitOfWork } from '@/shared/domain/persistence/unit-of-work.interface'
+import { eventBus } from '@/shared/infrastructure/events/event-bus'
 import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
 import { CreateUserDTO } from '@/modules/users/application/dto'
 import { User } from '@/modules/users/domain/entities/user.model'
@@ -12,7 +13,7 @@ import bcrypt from 'bcryptjs'
 export class CreateUserUseCase {
    constructor(
       private unitOfWork: UnitOfWork,
-      private userRepository: UserRepository
+      private userRepository: UserRepository,
    ) {}
 
    async execute(data: CreateUserDTO): Promise<User> {
@@ -33,7 +34,12 @@ export class CreateUserUseCase {
             createdAt: new Date(),
          })
 
-         return await this.userRepository.save(newUser, trx)
+         const savedUser = await this.userRepository.save(newUser, trx)
+
+         // Evento movido desde el Repositorio (Mejor práctica: Side Effects en Use Case)
+         eventBus.emit('user.created', { user: savedUser })
+
+         return savedUser
       })
    }
 }

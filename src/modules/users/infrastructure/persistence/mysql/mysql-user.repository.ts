@@ -2,7 +2,7 @@ import { UserRepository, UserFilters } from '@/modules/users/domain/repositories
 import { User } from '@/modules/users/domain/entities/user.model'
 import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
 import { Knex } from 'knex'
-import { eventBus } from '@/shared/infrastructure/events/event-bus'
+
 import { KnexPaginator } from '@/shared/infrastructure/persistence/mysql/knex-paginator'
 
 export class MySQLUserRepository implements UserRepository {
@@ -34,9 +34,6 @@ export class MySQLUserRepository implements UserRepository {
          })
 
          if (!user.id) user.id = insertedId
-
-         // Disparar evento de creación (Estilo Laravel)
-         eventBus.emit('user.created', { user })
       }
 
       return user
