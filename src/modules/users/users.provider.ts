@@ -8,6 +8,7 @@ import { GetUserByIdUseCase } from '@/modules/users/application/use-cases/querie
 import { GetAllUsersUseCase } from '@/modules/users/application/use-cases/queries/get-all-users.use-case'
 import { UserSubscriber } from '@/modules/users/application/subscribers/user.subscriber'
 import { UserController } from '@/modules/users/ui/user.controller'
+import { welcomeEmailWorker } from '@/modules/users/application/workers/welcome-email.worker'
 
 export const userRepository = new MySQLUserRepository(db)
 
@@ -21,3 +22,6 @@ export const userController = new UserController()
 
 // Inicializar subscriber
 new UserSubscriber()
+
+// Inicializar workers (BullMQ)
+welcomeEmailWorker

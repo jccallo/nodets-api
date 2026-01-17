@@ -11,15 +11,19 @@
       "db:migrate": "node -r ts-node/register -r tsconfig-paths/register node_modules/.bin/knex migrate:latest",
       "db:rollback": "node -r ts-node/register -r tsconfig-paths/register node_modules/.bin/knex migrate:rollback",
       "db:fb:migrate": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts up",
-      "db:fb:rollback": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts down"
+      "db:fb:rollback": "ts-node -r tsconfig-paths/register src/shared/infrastructure/persistence/firebird/run-migrations.ts down",
+      "infra:up": "docker compose up -d",
+      "infra:down": "docker compose stop"
    },
    "dependencies": {
       "axios": "^1.13.2",
       "bcryptjs": "^3.0.3",
+      "bullmq": "^5.66.5",
       "cors": "^2.8.5",
       "dotenv": "^17.2.3",
       "eventemitter2": "^6.4.9",
       "express": "^5.2.1",
+      "ioredis": "^5.9.2",
       "jsonwebtoken": "^9.0.3",
       "knex": "^3.1.0",
       "knex-firebird-dialect": "^1.4.6",
@@ -33,6 +37,7 @@
       "@types/bcryptjs": "^2.4.6",
       "@types/cors": "^2.8.19",
       "@types/express": "^5.0.6",
+      "@types/ioredis": "^4.28.10",
       "@types/jsonwebtoken": "^9.0.10",
       "@types/node": "^25.0.6",
       "@types/uuid": "^10.0.0",

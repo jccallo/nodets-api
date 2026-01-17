@@ -9,7 +9,7 @@ export class PostSubscriber {
 
    private setupSubscriptions(): void {
       // Escuchamos el evento de otro módulo (Users)
-      eventBus.listen('user.created', this.onUserCreated.bind(this))
+      // eventBus.listen('user.created', this.onUserCreated.bind(this))
    }
 
    private async onUserCreated(payload: { user: User }): Promise<void> {

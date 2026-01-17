@@ -25,4 +25,8 @@ export const env = {
       port: Number(process.env.FB_PORT) || 3050,
    },
    jwtSecret: process.env.JWT_SECRET || 'fallback_secret',
+   redis: {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: Number(process.env.REDIS_PORT) || 6379,
+   },
 }
