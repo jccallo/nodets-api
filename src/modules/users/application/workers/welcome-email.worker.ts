@@ -1,5 +1,5 @@
 import { Worker, Job } from 'bullmq'
-import { redisConnection } from '@/shared/infrastructure/queue/redis.connection'
+import { redisConnection } from '@/shared/infrastructure/redis/connection'
 import { logger } from '@/shared/services'
 
 export const welcomeEmailWorker = new Worker(
