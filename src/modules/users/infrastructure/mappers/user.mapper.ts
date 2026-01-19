@@ -4,7 +4,7 @@ import { UserResponseDTO } from '@/modules/users/application/dto/user-response.d
 
 export class UserMapper {
    static toDomain(row: any): User {
-      return new User({
+      return User.create({
          id: row.id,
          email: row.email,
          name: row.name,

@@ -1,27 +1,23 @@
-export class Post {
-   public id?: number | string
-   public title: string
-   public content: string
-   public userId: number | string
-   public published: boolean
-   public createdAt?: Date
-   public updatedAt?: Date
+import { BaseEntity, BaseProps } from '@/shared/domain/base-entity'
 
-   constructor(props: {
-      title: string
-      content: string
-      userId: number | string
-      published: boolean
-      id?: number | string
-      createdAt?: Date
-      updatedAt?: Date
-   }) {
-      this.id = props.id
-      this.title = props.title
-      this.content = props.content
-      this.userId = props.userId
-      this.published = props.published
-      this.createdAt = props.createdAt
-      this.updatedAt = props.updatedAt
+export interface PostProps extends BaseProps {
+   title: string
+   content: string
+   userId: number | string
+   published: boolean
+}
+
+export class Post extends BaseEntity<PostProps> {
+   get title(): string {
+      return this.props.title
+   }
+   get content(): string {
+      return this.props.content
+   }
+   get userId(): number | string {
+      return this.props.userId
+   }
+   get published(): boolean {
+      return this.props.published
    }
 }

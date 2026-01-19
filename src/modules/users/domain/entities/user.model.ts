@@ -1,33 +1,29 @@
+import { BaseEntity, BaseProps } from '@/shared/domain/base-entity'
 import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
 import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 
-export class User {
-   public id?: number | string
-   public email: string
-   public name: string
-   public password: string
-   public roles: UserRole[]
-   public status: UserStatus
-   public createdAt?: Date
-   public updatedAt?: Date
+export interface UserProps extends BaseProps {
+   email: string
+   name: string
+   password: string
+   roles: UserRole[]
+   status: UserStatus
+}
 
-   constructor(props: {
-      email: string
-      name: string
-      password: string
-      roles: UserRole[]
-      status: UserStatus
-      id?: number | string
-      createdAt?: Date
-      updatedAt?: Date
-   }) {
-      this.id = props.id
-      this.email = props.email
-      this.name = props.name
-      this.password = props.password
-      this.roles = props.roles
-      this.status = props.status
-      this.createdAt = props.createdAt
-      this.updatedAt = props.updatedAt
+export class User extends BaseEntity<UserProps> {
+   get email(): string {
+      return this.props.email
+   }
+   get name(): string {
+      return this.props.name
+   }
+   get password(): string {
+      return this.props.password
+   }
+   get roles(): UserRole[] {
+      return this.props.roles
+   }
+   get status(): UserStatus {
+      return this.props.status
    }
 }

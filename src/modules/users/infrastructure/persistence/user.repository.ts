@@ -25,7 +25,12 @@ export class UserRepository implements IUserRepository {
             createdAt: user.createdAt || new Date(),
          })
 
-         if (!user.id) user.id = insertedId
+         if (!user.id) {
+            return User.create({
+               ...user.props,
+               id: insertedId,
+            })
+         }
       }
 
       return user

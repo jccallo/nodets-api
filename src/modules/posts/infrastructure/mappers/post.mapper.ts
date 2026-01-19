@@ -2,7 +2,7 @@ import { Post } from '@/modules/posts/domain/entities/post.model'
 
 export class PostMapper {
    static toDomain(row: any): Post {
-      return new Post({
+      return Post.create({
          id: row.id,
          title: row.title,
          content: row.content,

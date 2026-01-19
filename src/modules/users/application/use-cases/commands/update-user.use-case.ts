@@ -1,7 +1,7 @@
 import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
 import { UpdateUserDTO } from '@/modules/users/application/dto'
 import { User } from '@/modules/users/domain/entities/user.model'
-import { AppError } from '@/shared/errors/app-error'
+import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
 // Removed VO imports
 import bcrypt from 'bcryptjs'
@@ -24,8 +24,8 @@ export class UpdateUserUseCase {
          }
       }
 
-      const updatedUser = new User({
-         id: currentUser.id,
+      const updatedUser = User.create({
+         id: currentUser.id!,
          email: data.email || currentUser.email,
          name: data.name || currentUser.name,
          password: data.password ? await bcrypt.hash(data.password, 10) : currentUser.password,

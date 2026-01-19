@@ -3,7 +3,7 @@ import { eventBus } from '@/shared/infrastructure/events/event-bus'
 import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
 import { CreateUserDTO } from '@/modules/users/application/dto'
 import { User } from '@/modules/users/domain/entities/user.model'
-import { AppError } from '@/shared/errors/app-error'
+import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
 
 import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
@@ -22,7 +22,7 @@ export class CreateUserUseCase {
 
          const hashedPassword = await bcrypt.hash(data.password, 10)
 
-         const newUser = new User({
+         const newUser = User.create({
             email: data.email,
             name: data.name,
             password: hashedPassword,

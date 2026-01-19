@@ -1,7 +1,8 @@
 import cors from 'cors'
 import express from 'express'
 import { registerRoutes } from '@/app/routes'
-import { errorHandler, notFoundHandler } from '@/shared/errors'
+import { notFoundHandler } from '@/shared/domain/exceptions'
+import { errorHandler } from '@/shared/domain/exceptions/error-handler'
 
 export function createApp() {
    const app = express()

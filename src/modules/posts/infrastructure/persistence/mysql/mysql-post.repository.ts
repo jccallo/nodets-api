@@ -20,7 +20,7 @@ export class MySQLPostRepository implements PostRepository {
             updated_at: new Date(),
          })
       } else {
-         await conn(this.tableName).insert({
+         const [insertedId] = await conn(this.tableName).insert({
             id: post.id,
             title: post.title,
             content: post.content,
@@ -29,6 +29,13 @@ export class MySQLPostRepository implements PostRepository {
             created_at: post.createdAt || new Date(),
             updated_at: new Date(),
          })
+
+         if (!post.id) {
+            return Post.create({
+               ...post.props,
+               id: insertedId,
+            })
+         }
       }
       return post
    }

@@ -1,6 +1,6 @@
 import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
 import { User } from '@/modules/users/domain/entities/user.model'
-import { AppError } from '@/shared/errors/app-error'
+import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
 
 export class GetUserByIdUseCase {

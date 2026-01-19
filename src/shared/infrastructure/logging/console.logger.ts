@@ -1,4 +1,4 @@
-import { Logger } from '@/shared/domain/logging/logger.interface'
+import { Logger } from '@/shared/domain/interfaces/logger.interface'
 
 export class ConsoleLogger implements Logger {
    info(message: string, context?: Record<string, any>): void {

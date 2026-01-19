@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios'
 import { HttpClient, HttpRequestConfig } from '@/shared/infrastructure/http/http-client.interface'
-import { AppError } from '@/shared/errors/app-error'
+import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
 
 export class AxiosClient implements HttpClient {

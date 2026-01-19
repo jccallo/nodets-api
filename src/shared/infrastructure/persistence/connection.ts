@@ -1,5 +1,5 @@
 import knex from 'knex'
-import { dbConfig } from '@/shared/infrastructure/persistence/config/database'
+import { dbConfig } from '@/shared/infrastructure/persistence/database'
 import { TransactionContext } from '@/shared/infrastructure/persistence/transaction-context'
 
 export const knexInstance = knex(dbConfig)

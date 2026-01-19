@@ -1,5 +1,5 @@
 import knex from 'knex'
-import { connections } from '@/shared/infrastructure/persistence/config/database'
+import { connections } from '@/shared/infrastructure/persistence/database'
 
 const firebirdDb = knex(connections.firebird)
 

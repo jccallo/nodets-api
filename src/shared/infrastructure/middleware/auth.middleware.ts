@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { env } from '@/shared/env'
-import { AppError } from '@/shared/errors/app-error'
+import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
 
 export const authMiddleware = (req: Request, _res: Response, next: NextFunction) => {

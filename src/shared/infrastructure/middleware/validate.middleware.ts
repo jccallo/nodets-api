@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { z, ZodError } from 'zod'
-import { AppError } from '@/shared/errors'
+import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
 
 export const validate = (schema: z.ZodSchema) => {
@@ -11,12 +11,15 @@ export const validate = (schema: z.ZodSchema) => {
       } catch (error) {
          if (error instanceof ZodError) {
             // Formato agrupado: { field: [error1, error2] }
-            const details = error.issues.reduce((acc, err) => {
-               const field = err.path.join('.')
-               if (!acc[field]) acc[field] = []
-               acc[field].push(err.message)
-               return acc
-            }, {} as Record<string, string[]>)
+            const details = error.issues.reduce(
+               (acc, err) => {
+                  const field = err.path.join('.')
+                  if (!acc[field]) acc[field] = []
+                  acc[field].push(err.message)
+                  return acc
+               },
+               {} as Record<string, string[]>,
+            )
 
             throw new AppError(details, HttpStatus.BAD_REQUEST)
          }
