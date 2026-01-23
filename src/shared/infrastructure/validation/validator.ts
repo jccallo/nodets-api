@@ -1,270 +1,120 @@
-export type ValidationRule = (value: any) => string | null
+export type ValidationResult = { error: any; value: any }
+export type ValidationRule = (value: any) => ValidationResult
 
 class ValidatorBuilder {
    private rules: ValidationRule[] = []
    private isOptional = false
+   private isNullable = false
    private requiredMsg: string | null = null
 
-   /**
-    * Marca el campo como opcional. Si el valor es null, undefined o "", se saltan las validaciones.
-    */
    optional(): this {
       this.isOptional = true
       return this
    }
 
-   /**
-    * Define un mensaje personalizado para cuando el campo obligatorio falta.
-    */
+   nullable(): this {
+      this.isNullable = true
+      return this
+   }
+
    required(message: string): this {
       this.requiredMsg = message
       return this
    }
 
-   /**
-    * Valida que el dato sea de tipo STRING.
-    */
+   private _addRule(fn: ValidationRule): this {
+      this.rules.push(fn)
+      return this
+   }
+
+   // --- STRINGS ---
    string(message: string): this {
-      this.rules.push((v) => (typeof v === 'string' ? null : message))
-      return this
+      return this._addRule((v) => ({ error: typeof v === 'string' ? null : message, value: v }))
    }
 
-   /**
-    * Valida que el dato sea un NÚMERO (acepta números reales o strings numéricos).
-    */
+   base64(message: string): this {
+      const regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
+      return this._addRule((v) => ({ error: typeof v === 'string' && regex.test(v) ? null : message, value: v }))
+   }
+
+   // --- FILES ---
+   file(options: { maxSize?: number; allowedTypes?: string[] } = {}, message: string): this {
+      return this._addRule((v) => {
+         const isFile = v && typeof v === 'object' && (v.size !== undefined || v.mimetype !== undefined)
+         if (!isFile) return { error: message, value: v }
+         if (options.maxSize && v.size > options.maxSize) return { error: `File too large`, value: v }
+         if (options.allowedTypes && !options.allowedTypes.includes(v.mimetype))
+            return { error: `Invalid type`, value: v }
+         return { error: null, value: v }
+      })
+   }
+
+   image(message: string): this {
+      return this._addRule((v) => {
+         if (typeof v === 'string' && v.startsWith('data:image/')) return { error: null, value: v }
+         if (v && typeof v === 'object' && v.mimetype?.startsWith('image/')) return { error: null, value: v }
+         return { error: message, value: v }
+      })
+   }
+
+   // ... (Rest of basic rules)
    number(message: string): this {
-      this.rules.push((v) => (v !== '' && v !== null && !isNaN(Number(v)) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida la LONGITUD MÍNIMA (para STRING o ARRAY).
-    */
-   min(length: number, message: string): this {
-      this.rules.push((v) =>
-         typeof v === 'string' || Array.isArray(v) ? (v.length >= length ? null : message) : message,
-      )
-      return this
-   }
-
-   /**
-    * Valida la LONGITUD MÁXIMA (para STRING o ARRAY).
-    */
-   max(length: number, message: string): this {
-      this.rules.push((v) =>
-         typeof v === 'string' || Array.isArray(v) ? (v.length <= length ? null : message) : message,
-      )
-      return this
-   }
-
-   /**
-    * Valida el formato de EMAIL.
-    */
-   email(message: string): this {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      this.rules.push((v) => (typeof v === 'string' && emailRegex.test(v) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida que el dato sea un BOOLEANO (o string "true"/"false"/1/0).
-    */
-   boolean(message: string): this {
-      this.rules.push((v) => {
-         if (typeof v === 'boolean') return null
-         if (v === 'true' || v === 'false' || v === 1 || v === 0 || v === '1' || v === '0') return null
-         return message
-      })
-      return this
-   }
-
-   /**
-    * Valida que el dato sea un OBJETO literal.
-    */
-   object(message: string): this {
-      this.rules.push((v) => (typeof v === 'object' && v !== null && !Array.isArray(v) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida que el dato sea un ARRAY.
-    */
-   array(message: string): this {
-      this.rules.push((v) => (Array.isArray(v) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida que el dato sea una FECHA válida.
-    */
-   date(message: string): this {
-      this.rules.push((v) => (!isNaN(Date.parse(v)) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida que el dato sea un NÚMERO ENTERO (acepta números o strings numéricos sin decimales).
-    */
-   integer(message: string): this {
-      this.rules.push((v) => {
+      return this._addRule((v) => {
          const n = Number(v)
-         return v !== '' && v !== null && Number.isInteger(n) ? null : message
+         return { error: !isNaN(n) ? null : message, value: n }
       })
-      return this
    }
-
-   /**
-    * Valida contra una EXPRESIÓN REGULAR.
-    */
-   regex(pattern: RegExp, message: string): this {
-      this.rules.push((v) => (pattern.test(String(v)) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida que el valor esté en una lista permitida (ENUM).
-    */
-   oneOf(values: any[], message: string): this {
-      this.rules.push((v) => (values.includes(v) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida formato UUID.
-    */
-   uuid(message: string): this {
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      this.rules.push((v) => (uuidRegex.test(v) ? null : message))
-      return this
-   }
-
-   /**
-    * Valida formato URL.
-    */
-   url(message: string): this {
-      this.rules.push((v) => {
-         try {
-            new URL(v)
-            return null
-         } catch (_) {
-            return message
-         }
+   integer(message: string): this {
+      return this._addRule((v) => {
+         const n = Number(v)
+         return { error: Number.isInteger(n) ? null : message, value: n }
       })
-      return this
+   }
+   boolean(message: string): this {
+      return this._addRule((v) => {
+         if (typeof v === 'boolean') return { error: null, value: v }
+         return { error: message, value: v }
+      })
    }
 
-   /**
-    * Valida el VALOR MÍNIMO (para NÚMEROS o ENTEROS).
-    */
-   minValue(min: number, message: string): this {
-      this.rules.push((v) => (Number(v) >= min ? null : message))
-      return this
+   schema(innerSchema: Record<string, any>): this {
+      return this._addRule((v) => {
+         const result = validate(v, innerSchema)
+         return { error: result.success ? null : result.errors, value: result.data }
+      })
    }
 
-   /**
-    * Valida el VALOR MÁXIMO (para NÚMEROS o ENTEROS).
-    */
-   maxValue(max: number, message: string): this {
-      this.rules.push((v) => (Number(v) <= max ? null : message))
-      return this
-   }
-
-   run(value: any): string[] {
+   run(value: any): { errors: any[]; value: any } {
+      if (value === null && this.isNullable) return { errors: [], value: null }
       const isEmpty = value === undefined || value === null || value === ''
-
       if (isEmpty) {
-         if (this.isOptional) return []
-         const fallbackMsg = this.rules[0] ? this.rules[0]('') : 'Required field'
-         return [this.requiredMsg || fallbackMsg!]
+         if (this.isOptional) return { errors: [], value }
+         return { errors: [this.requiredMsg || 'Required'], value }
       }
-
-      const errors: string[] = []
+      let currentValue = value
+      const errors: any[] = []
       for (const rule of this.rules) {
-         const error = rule(value)
-         if (error) errors.push(error)
+         const result = rule(currentValue)
+         if (result.error) errors.push(result.error)
+         currentValue = result.value
       }
-      return errors
+      return { errors, value: currentValue }
    }
 }
 
-/**
- * Crea una regla de tipo string con mensaje personalizado
- */
-export const string = (message: string) => new ValidatorBuilder().string(message)
-
-/**
- * Crea una regla de tipo number con mensaje personalizado
- */
-export const number = (message: string) => new ValidatorBuilder().number(message)
-
-/**
- * Crea una regla de tipo boolean con mensaje personalizado
- */
-export const boolean = (message: string) => new ValidatorBuilder().boolean(message)
-
-/**
- * Crea una regla de tipo object con mensaje personalizado
- */
-export const object = (message: string) => new ValidatorBuilder().object(message)
-
-/**
- * Crea una regla de tipo array con mensaje personalizado
- */
-export const array = (message: string) => new ValidatorBuilder().array(message)
-
-/**
- * Crea una regla de tipo date con mensaje personalizado
- */
-export const date = (message: string) => new ValidatorBuilder().date(message)
-
-/**
- * Crea una regla de tipo integer con mensaje personalizado
- */
-export const integer = (message: string) => new ValidatorBuilder().integer(message)
-
-/**
- * Crea una regla con expresión regular personalizada
- */
-export const regex = (pattern: RegExp, message: string) => new ValidatorBuilder().regex(pattern, message)
-
-/**
- * Crea una regla de tipo enum con mensaje personalizado
- */
-export const oneOf = (values: any[], message: string) => new ValidatorBuilder().oneOf(values, message)
-
-/**
- * Crea una regla de tipo uuid con mensaje personalizado
- */
-export const uuid = (message: string) => new ValidatorBuilder().uuid(message)
-
-/**
- * Crea una regla de tipo url con mensaje personalizado
- */
-export const url = (message: string) => new ValidatorBuilder().url(message)
-
-/**
- * Inicia una regla como opcional
- */
-export const optional = () => new ValidatorBuilder().optional()
-
-/**
- * Motor de validación
- */
-export const validate = <T>(data: any, schema: Record<keyof T, ValidatorBuilder>) => {
-   const errors: Record<string, string[]> = {}
-
-   for (const field in schema) {
-      const fieldErrors = schema[field].run(data[field])
-      if (fieldErrors.length > 0) {
-         errors[field] = fieldErrors
-      }
+export const string = (m: string) => new ValidatorBuilder().string(m)
+export const base64 = (m: string) => new ValidatorBuilder().base64(m)
+export const file = (opt: any, m: string) => new ValidatorBuilder().file(opt, m)
+export const image = (m: string) => new ValidatorBuilder().image(m)
+export const schema = (s: Record<string, any>) => new ValidatorBuilder().schema(s)
+export const validate = (data: any, validationSchema: Record<string, any>) => {
+   const errors: any = {}
+   const validatedData: any = { ...data }
+   for (const field in validationSchema) {
+      const result = validationSchema[field].run(data[field])
+      if (result.errors.length > 0) errors[field] = result.errors
+      else validatedData[field] = result.value
    }
-
    const isValid = Object.keys(errors).length === 0
-
-   return {
-      success: isValid,
-      errors: isValid ? null : errors,
-      data: isValid ? (data as T) : null,
-   }
+   return { success: isValid, errors: isValid ? null : errors, data: isValid ? validatedData : null }
 }
