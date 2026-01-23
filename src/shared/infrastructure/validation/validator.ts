@@ -6,19 +6,27 @@ class ValidatorBuilder {
    private isOptional = false
    private isNullable = false
    private requiredMsg: string | null = null
+   private defaultValue: any = undefined
 
    optional(): this {
       this.isOptional = true
       return this
    }
-
    nullable(): this {
       this.isNullable = true
       return this
    }
-
-   required(message: string): this {
-      this.requiredMsg = message
+   nullish(): this {
+      this.isOptional = true
+      this.isNullable = true
+      return this
+   }
+   default(val: any): this {
+      this.defaultValue = val
+      return this
+   }
+   required(msg: string): this {
+      this.requiredMsg = msg
       return this
    }
 
@@ -27,94 +35,108 @@ class ValidatorBuilder {
       return this
    }
 
-   // --- STRINGS ---
-   string(message: string): this {
-      return this._addRule((v) => ({ error: typeof v === 'string' ? null : message, value: v }))
+   string(m: string): this {
+      return this._addRule((v) => ({ error: typeof v === 'string' ? null : m, value: v }))
    }
-
-   base64(message: string): this {
-      const regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
-      return this._addRule((v) => ({ error: typeof v === 'string' && regex.test(v) ? null : message, value: v }))
-   }
-
-   // --- FILES ---
-   file(options: { maxSize?: number; allowedTypes?: string[] } = {}, message: string): this {
-      return this._addRule((v) => {
-         const isFile = v && typeof v === 'object' && (v.size !== undefined || v.mimetype !== undefined)
-         if (!isFile) return { error: message, value: v }
-         if (options.maxSize && v.size > options.maxSize) return { error: `File too large`, value: v }
-         if (options.allowedTypes && !options.allowedTypes.includes(v.mimetype))
-            return { error: `Invalid type`, value: v }
-         return { error: null, value: v }
-      })
-   }
-
-   image(message: string): this {
-      return this._addRule((v) => {
-         if (typeof v === 'string' && v.startsWith('data:image/')) return { error: null, value: v }
-         if (v && typeof v === 'object' && v.mimetype?.startsWith('image/')) return { error: null, value: v }
-         return { error: message, value: v }
-      })
-   }
-
-   // ... (Rest of basic rules)
-   number(message: string): this {
+   number(m: string): this {
       return this._addRule((v) => {
          const n = Number(v)
-         return { error: !isNaN(n) ? null : message, value: n }
+         const ok = v !== '' && v !== null && !isNaN(n)
+         return { error: ok ? null : m, value: ok ? n : v }
       })
    }
-   integer(message: string): this {
+   integer(m: string): this {
       return this._addRule((v) => {
          const n = Number(v)
-         return { error: Number.isInteger(n) ? null : message, value: n }
+         const ok = v !== '' && v !== null && Number.isInteger(n)
+         return { error: ok ? null : m, value: ok ? n : v }
       })
    }
-   boolean(message: string): this {
+   boolean(m: string): this {
       return this._addRule((v) => {
          if (typeof v === 'boolean') return { error: null, value: v }
-         return { error: message, value: v }
+         if (v === 'true' || v === '1' || v === 1) return { error: null, value: true }
+         if (v === 'false' || v === '0' || v === 0) return { error: null, value: false }
+         return { error: m, value: v }
       })
    }
 
-   schema(innerSchema: Record<string, any>): this {
+   min(len: number, m: string): this {
+      return this._addRule((v) => ({ error: v?.length >= len ? null : m, value: v }))
+   }
+   max(len: number, m: string): this {
+      return this._addRule((v) => ({ error: v?.length <= len ? null : m, value: v }))
+   }
+   email(m: string): this {
+      const r = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      return this._addRule((v) => ({ error: r.test(String(v)) ? null : m, value: v }))
+   }
+   uuid(m: string): this {
+      const r = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      return this._addRule((v) => ({ error: r.test(String(v)) ? null : m, value: v }))
+   }
+
+   elements(builder: ValidatorBuilder): this {
       return this._addRule((v) => {
-         const result = validate(v, innerSchema)
-         return { error: result.success ? null : result.errors, value: result.data }
+         if (!Array.isArray(v)) return { error: 'Debe ser array', value: v }
+         const errors: any[] = []
+         const values: any[] = []
+         v.forEach((it, idx) => {
+            const res = builder.run(it)
+            if (res.errors.length > 0) errors.push({ idx, errors: res.errors })
+            values.push(res.value)
+         })
+         return { error: errors.length > 0 ? errors : null, value: values }
       })
+   }
+
+   schema(s: Record<string, any>): this {
+      return this._addRule((v) => {
+         const res = validate(v, s)
+         return { error: res.success ? null : res.errors, value: res.data }
+      })
+   }
+
+   refine(fn: (v: any) => boolean, m: string): this {
+      return this._addRule((v) => ({ error: fn(v) ? null : m, value: v }))
+   }
+   transform(fn: (v: any) => any): this {
+      return this._addRule((v) => ({ error: null, value: fn(v) }))
    }
 
    run(value: any): { errors: any[]; value: any } {
-      if (value === null && this.isNullable) return { errors: [], value: null }
-      const isEmpty = value === undefined || value === null || value === ''
-      if (isEmpty) {
-         if (this.isOptional) return { errors: [], value }
-         return { errors: [this.requiredMsg || 'Required'], value }
+      let cur = value === undefined ? this.defaultValue : value
+      if (cur === null && this.isNullable) return { errors: [], value: null }
+      if (cur === undefined || cur === null || cur === '') {
+         if (this.isOptional) return { errors: [], value: cur }
+         return { errors: [this.requiredMsg || 'Required'], value: cur }
       }
-      let currentValue = value
-      const errors: any[] = []
-      for (const rule of this.rules) {
-         const result = rule(currentValue)
-         if (result.error) errors.push(result.error)
-         currentValue = result.value
+      const errs: any[] = []
+      for (const r of this.rules) {
+         const res = r(cur)
+         if (res.error) errs.push(res.error)
+         cur = res.value
       }
-      return { errors, value: currentValue }
+      return { errors: errs, value: cur }
    }
 }
 
 export const string = (m: string) => new ValidatorBuilder().string(m)
-export const base64 = (m: string) => new ValidatorBuilder().base64(m)
-export const file = (opt: any, m: string) => new ValidatorBuilder().file(opt, m)
-export const image = (m: string) => new ValidatorBuilder().image(m)
-export const schema = (s: Record<string, any>) => new ValidatorBuilder().schema(s)
-export const validate = (data: any, validationSchema: Record<string, any>) => {
+export const number = (m: string) => new ValidatorBuilder().number(m)
+export const boolean = (m: string) => new ValidatorBuilder().boolean(m)
+export const optional = () => new ValidatorBuilder().optional()
+export const nullish = () => new ValidatorBuilder().nullish()
+export const elements = (b: any) => new ValidatorBuilder().elements(b)
+export const schema = (s: any) => new ValidatorBuilder().schema(s)
+
+export const validate = <T>(data: any, validationSchema: Record<string, any>) => {
    const errors: any = {}
-   const validatedData: any = { ...data }
-   for (const field in validationSchema) {
-      const result = validationSchema[field].run(data[field])
-      if (result.errors.length > 0) errors[field] = result.errors
-      else validatedData[field] = result.value
+   const validatedData: any = {}
+   for (const f in validationSchema) {
+      const res = validationSchema[f].run(data[f])
+      if (res.errors.length > 0) errors[f] = res.errors
+      else validatedData[f] = res.value
    }
-   const isValid = Object.keys(errors).length === 0
-   return { success: isValid, errors: isValid ? null : errors, data: isValid ? validatedData : null }
+   const ok = Object.keys(errors).length === 0
+   return { success: ok, errors: ok ? null : errors, data: ok ? (validatedData as T) : null }
 }

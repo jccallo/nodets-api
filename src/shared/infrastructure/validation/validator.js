@@ -1,13 +1,14 @@
 /**
  * Clase que construye el encadenamiento de reglas de validación.
- * Soporta validación obligatoria por defecto, transformaciones y reglas avanzadas.
+ * Soporta validación obligatoria por defecto, transformaciones, esquemas anidados y reglas avanzadas.
  */
 class ValidatorBuilder {
    constructor() {
-      this.rules = [] // Cada regla es (value) => { error: string|null, value: any }
+      this.rules = [] // Cada regla es (value) => { error: string|any|null, value: any }
       this.isOptional = false
       this.isNullable = false
       this.requiredMsg = null
+      this.defaultValue = undefined
    }
 
    /**
@@ -23,6 +24,23 @@ class ValidatorBuilder {
     */
    nullable() {
       this.isNullable = true
+      return this
+   }
+
+   /**
+    * Atajo para .optional().nullable()
+    */
+   nullish() {
+      this.isOptional = true
+      this.isNullable = true
+      return this
+   }
+
+   /**
+    * Define un valor por defecto si el dato original está vacío.
+    */
+   default(value) {
+      this.defaultValue = value
       return this
    }
 
@@ -44,9 +62,6 @@ class ValidatorBuilder {
 
    // --- STRINGS ---
 
-   /**
-    * Valida que el dato sea de tipo STRING.
-    */
    string(message) {
       return this._addRule((v) => ({
          error: typeof v === 'string' ? null : message,
@@ -54,9 +69,6 @@ class ValidatorBuilder {
       }))
    }
 
-   /**
-    * Valida la LONGITUD EXACTA de un string o array.
-    */
    length(len, message) {
       return this._addRule((v) => ({
          error: v?.length === len ? null : message,
@@ -118,47 +130,24 @@ class ValidatorBuilder {
       })
    }
 
-   datetime(message) {
-      const regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/
+   alphanumeric(message) {
+      const regex = /^[a-z0-9]+$/i
       return this._addRule((v) => ({
          error: regex.test(String(v)) ? null : message,
          value: v,
       }))
    }
 
-   startsWith(prefix, message) {
-      return this._addRule((v) => ({
-         error: String(v).startsWith(prefix) ? null : message,
-         value: v,
-      }))
-   }
-
-   endsWith(suffix, message) {
-      return this._addRule((v) => ({
-         error: String(v).endsWith(suffix) ? null : message,
-         value: v,
-      }))
-   }
-
    trim() {
-      return this._addRule((v) => ({
-         error: null,
-         value: typeof v === 'string' ? v.trim() : v,
-      }))
+      return this._addRule((v) => ({ error: null, value: typeof v === 'string' ? v.trim() : v }))
    }
 
    toLowerCase() {
-      return this._addRule((v) => ({
-         error: null,
-         value: typeof v === 'string' ? v.toLowerCase() : v,
-      }))
+      return this._addRule((v) => ({ error: null, value: typeof v === 'string' ? v.toLowerCase() : v }))
    }
 
    toUpperCase() {
-      return this._addRule((v) => ({
-         error: null,
-         value: typeof v === 'string' ? v.toUpperCase() : v,
-      }))
+      return this._addRule((v) => ({ error: null, value: typeof v === 'string' ? v.toUpperCase() : v }))
    }
 
    // --- NUMBERS ---
@@ -180,203 +169,147 @@ class ValidatorBuilder {
    }
 
    minValue(min, message) {
-      return this._addRule((v) => ({
-         error: Number(v) >= min ? null : message,
-         value: v,
-      }))
+      return this._addRule((v) => ({ error: Number(v) >= min ? null : message, value: v }))
    }
 
    maxValue(max, message) {
-      return this._addRule((v) => ({
-         error: Number(v) <= max ? null : message,
-         value: v,
-      }))
+      return this._addRule((v) => ({ error: Number(v) <= max ? null : message, value: v }))
    }
 
    positive(message) {
-      return this.minValue(0.0000000001, message)
+      return this.minValue(1e-10, message)
    }
-
    negative(message) {
-      return this.maxValue(-0.0000000001, message)
-   }
-
-   nonpositive(message) {
-      return this.maxValue(0, message)
-   }
-
-   nonnegative(message) {
-      return this.minValue(0, message)
+      return this.maxValue(-1e-10, message)
    }
 
    multipleOf(n, message) {
-      return this._addRule((v) => ({
-         error: Number(v) % n === 0 ? null : message,
-         value: v,
-      }))
+      return this._addRule((v) => ({ error: Number(v) % n === 0 ? null : message, value: v }))
    }
 
-   finite(message) {
-      return this._addRule((v) => ({
-         error: Number.isFinite(Number(v)) ? null : message,
-         value: v,
-      }))
-   }
+   // --- FILES ---
 
-   // --- OTHERS ---
-
-   boolean(message) {
-      return this._addRule((v) => {
-         if (typeof v === 'boolean') return { error: null, value: v }
-         if (v === 'true' || v === '1' || v === 1) return { error: null, value: true }
-         if (v === 'false' || v === '0' || v === 0) return { error: null, value: false }
-         return { error: message, value: v }
-      })
-   }
-
-   date(message) {
-      return this._addRule((v) => {
-         const d = new Date(v)
-         const isValid = !isNaN(d.getTime())
-         return { error: isValid ? null : message, value: isValid ? d : v }
-      })
-   }
-
-   object(message) {
-      return this._addRule((v) => ({
-         error: typeof v === 'object' && v !== null && !Array.isArray(v) ? null : message,
-         value: v,
-      }))
-   }
-
-   array(message) {
-      return this._addRule((v) => ({
-         error: Array.isArray(v) ? null : message,
-         value: v,
-      }))
-   }
-
-   oneOf(values, message) {
-      return this._addRule((v) => ({
-         error: values.includes(v) ? null : message,
-         value: v,
-      }))
-   }
-
-   regex(pattern, message) {
-      return this._addRule((v) => ({
-         error: pattern.test(String(v)) ? null : message,
-         value: v,
-      }))
-   }
-
-   // --- LOGIC ---
-
-   /**
-    * Permite agregar una función personalizada de validación.
-    */
-   refine(fn, message) {
-      return this._addRule((v) => ({
-         error: fn(v) ? null : message,
-         value: v,
-      }))
-   }
-
-   /**
-    * Permite transformar el dato libremente.
-    */
-   transform(fn) {
-      return this._addRule((v) => ({
-         error: null,
-         value: fn(v),
-      }))
-   }
-
-   /**
-    * Ejecuta el pipeline de reglas y colecta errores.
-    */
-   /**
-    * Valida que el dato sea una cadena BASE64 válida.
-    */
-   base64(message) {
-      const regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
-      return this._addRule((v) => ({
-         error: typeof v === 'string' && regex.test(v) ? null : message,
-         value: v,
-      }))
-   }
-
-   /**
-    * Valida un ARCHIVO (ya sea objeto File del navegador o estructura de Multer/Node).
-    * Permite validar tamaño máximo (en bytes) y tipos permitidos.
-    */
    file(options = {}, message) {
       const { maxSize, allowedTypes } = options
       return this._addRule((v) => {
-         // Verificación básica de estructura de archivo
          const isFile = v && typeof v === 'object' && (v.size !== undefined || v.mimetype !== undefined)
          if (!isFile) return { error: message, value: v }
-
-         if (maxSize && v.size > maxSize) return { error: `File too large (max ${maxSize} bytes)`, value: v }
-         if (allowedTypes && !allowedTypes.includes(v.mimetype))
-            return { error: `Invalid file type: ${v.mimetype}`, value: v }
-
+         if (maxSize && v.size > maxSize) return { error: `File too large`, value: v }
+         if (allowedTypes && !allowedTypes.includes(v.mimetype)) return { error: `Invalid type`, value: v }
          return { error: null, value: v }
       })
    }
 
-   /**
-    * Valida que sea una IMAGEN (soporta Base64 con cabecera data:image/... o objeto File).
-    */
    image(message) {
       return this._addRule((v) => {
-         // Caso 1: String Base64 con cabecera
-         if (typeof v === 'string' && v.startsWith('data:image/')) return { error: null, value: v }
+         const isImg = (typeof v === 'string' && v.startsWith('data:image/')) || v?.mimetype?.startsWith('image/')
+         return { error: isImg ? null : message, value: v }
+      })
+   }
 
-         // Caso 2: Objeto File/Multer
-         if (v && typeof v === 'object' && v.mimetype?.startsWith('image/')) return { error: null, value: v }
+   // --- COMPLEX ---
 
-         return { error: message, value: v }
+   /**
+    * Valida cada elemento de un array usando una regla/builder.
+    */
+   elements(itemBuilder) {
+      return this._addRule((v) => {
+         if (!Array.isArray(v)) return { error: 'Debe ser una lista', value: v }
+         const errors = []
+         const values = []
+         v.forEach((item, idx) => {
+            const res = itemBuilder.run(item)
+            if (res.errors.length > 0) errors.push({ index: idx, errors: res.errors })
+            values.push(res.value)
+         })
+         return { error: errors.length > 0 ? errors : null, value: values }
       })
    }
 
    /**
-    * Valida que el dato cumpla con un ESQUEMA ANIDADO.
+    * Valida un objeto donde todos los valores deben cumplir una regla (Diccionario).
     */
-   schema(innerSchema) {
-      this.object('Debe ser un objeto')
+   record(valueBuilder) {
       return this._addRule((v) => {
-         const result = validate(v, innerSchema)
-         return {
-            error: result.success ? null : result.errors,
-            value: result.data,
+         if (typeof v !== 'object' || v === null || Array.isArray(v)) return { error: 'Debe ser un objeto', value: v }
+         const errors = {}
+         const values = {}
+         for (const key in v) {
+            const res = valueBuilder.run(v[key])
+            if (res.errors.length > 0) errors[key] = res.errors
+            values[key] = res.value
+         }
+         return { error: Object.keys(errors).length > 0 ? errors : null, value: values }
+      })
+   }
+
+   schema(innerSchema) {
+      return this._addRule((v) => {
+         const res = validate(v, innerSchema)
+         return { error: res.success ? null : res.errors, value: res.data }
+      })
+   }
+
+   // --- SPECIALIZED ---
+
+   creditCard(message) {
+      return this._addRule((v) => {
+         const s = String(v).replace(/\D/g, '')
+         let sum = 0
+         let shouldDouble = false
+         for (let i = s.length - 1; i >= 0; i--) {
+            let digit = parseInt(s.charAt(i))
+            if (shouldDouble) {
+               if ((digit *= 2) > 9) digit -= 9
+            }
+            sum += digit
+            shouldDouble = !shouldDouble
+         }
+         const valid = sum !== 0 && sum % 10 === 0
+         return { error: valid ? null : message, value: v }
+      })
+   }
+
+   json(message) {
+      return this._addRule((v) => {
+         try {
+            const parsed = JSON.parse(v)
+            return { error: null, value: parsed }
+         } catch {
+            return { error: message, value: v }
          }
       })
+   }
+
+   truthy(message) {
+      return this._addRule((v) => ({ error: !!v ? null : message, value: v }))
+   }
+
+   // --- CORE ---
+
+   refine(fn, message) {
+      return this._addRule((v) => ({ error: fn(v) ? null : message, value: v }))
+   }
+   transform(fn) {
+      return this._addRule((v) => ({ error: null, value: fn(v) }))
    }
 
    run(value) {
-      // Manejo de nulos y opcionales
-      if (value === null && this.isNullable) return { errors: [], value: null }
+      let currentValue = value === undefined ? this.defaultValue : value
+      if (currentValue === null && this.isNullable) return { errors: [], value: null }
 
-      const isEmpty = value === undefined || value === null || value === ''
+      const isEmpty = currentValue === undefined || currentValue === null || currentValue === ''
       if (isEmpty) {
-         if (this.isOptional) return { errors: [], value }
-         const firstRule = this.rules[0]
-         const fallback = firstRule ? firstRule('').error : 'Required'
-         return { errors: [this.requiredMsg || fallback], value }
+         if (this.isOptional) return { errors: [], value: currentValue }
+         return { errors: [this.requiredMsg || 'Requerido'], value: currentValue }
       }
 
-      let currentValue = value
       const errors = []
-
       for (const rule of this.rules) {
          const result = rule(currentValue)
-         if (result.error) {
-            errors.push(result.error)
-         }
-         currentValue = result.value // Las transformaciones se mantienen para la siguiente regla
+         if (result.error) errors.push(result.error)
+         currentValue = result.value
       }
-
       return { errors, value: currentValue }
    }
 }
@@ -392,34 +325,30 @@ export const object = (m) => new ValidatorBuilder().object(m)
 export const array = (m) => new ValidatorBuilder().array(m)
 export const optional = () => new ValidatorBuilder().optional()
 export const nullable = () => new ValidatorBuilder().nullable()
+export const nullish = () => new ValidatorBuilder().nullish()
 export const oneOf = (v, m) => new ValidatorBuilder().oneOf(v, m)
 export const uuid = (m) => new ValidatorBuilder().uuid(m)
 export const url = (m) => new ValidatorBuilder().url(m)
 export const schema = (s) => new ValidatorBuilder().schema(s)
-export const base64 = (m) => new ValidatorBuilder().base64(m)
-export const file = (opt, m) => new ValidatorBuilder().file(opt, m)
-export const image = (m) => new ValidatorBuilder().image(m)
+export const elements = (b) => new ValidatorBuilder().elements(b)
+export const record = (b) => new ValidatorBuilder().record(b)
+export const json = (m) => new ValidatorBuilder().json(m)
+export const truthy = (m) => new ValidatorBuilder().truthy(m)
 
 /**
- * Motor principal de validación.
- * Retorna { success, data, errors }.
- * La data devuelta contiene las transformaciones aplicadas.
+ * Motor de validación.
  */
-export const validate = (data, schema) => {
+export const validate = (data, validationSchema) => {
    const errors = {}
-   const validatedData = { ...data }
+   const validatedData = {}
 
-   for (const field in schema) {
-      const result = schema[field].run(data[field])
-      if (result.errors.length > 0) {
-         errors[field] = result.errors
-      } else {
-         validatedData[field] = result.value
-      }
+   for (const field in validationSchema) {
+      const result = validationSchema[field].run(data[field])
+      if (result.errors.length > 0) errors[field] = result.errors
+      else validatedData[field] = result.value
    }
 
    const isValid = Object.keys(errors).length === 0
-
    return {
       success: isValid,
       errors: isValid ? null : errors,
