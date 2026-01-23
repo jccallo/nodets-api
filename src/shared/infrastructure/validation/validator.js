@@ -37,7 +37,7 @@ class ValidatorBuilder {
    }
 
    /**
-    * Define un valor por defecto si el dato original está vacío.
+    * Define un valor por defecto si el dato original está vacío o no existe.
     */
    default(value) {
       this.defaultValue = value
@@ -65,6 +65,20 @@ class ValidatorBuilder {
    string(message) {
       return this._addRule((v) => ({
          error: typeof v === 'string' ? null : message,
+         value: v,
+      }))
+   }
+
+   object(message) {
+      return this._addRule((v) => ({
+         error: typeof v === 'object' && v !== null && !Array.isArray(v) ? null : message,
+         value: v,
+      }))
+   }
+
+   array(message) {
+      return this._addRule((v) => ({
+         error: Array.isArray(v) ? null : message,
          value: v,
       }))
    }
@@ -117,6 +131,9 @@ class ValidatorBuilder {
       }))
    }
 
+   /**
+    * Valida formato de IP (v4, v6 o cualquiera).
+    */
    ip(message, version = 'all') {
       const ipv4 = /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/
       const ipv6 =
@@ -130,8 +147,34 @@ class ValidatorBuilder {
       })
    }
 
+   /**
+    * Valida contra una expresión regular personalizada.
+    */
+   matches(regex, message) {
+      return this._addRule((v) => ({
+         error: regex.test(String(v)) ? null : message,
+         value: v,
+      }))
+   }
+
    alphanumeric(message) {
       const regex = /^[a-z0-9]+$/i
+      return this._addRule((v) => ({
+         error: regex.test(String(v)) ? null : message,
+         value: v,
+      }))
+   }
+
+   slug(message) {
+      const regex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+      return this._addRule((v) => ({
+         error: regex.test(String(v)) ? null : message,
+         value: v,
+      }))
+   }
+
+   hexColor(message) {
+      const regex = /^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
       return this._addRule((v) => ({
          error: regex.test(String(v)) ? null : message,
          value: v,
@@ -148,6 +191,27 @@ class ValidatorBuilder {
 
    toUpperCase() {
       return this._addRule((v) => ({ error: null, value: typeof v === 'string' ? v.toUpperCase() : v }))
+   }
+
+   // --- LOGICAL ---
+
+   or(otherBuilder) {
+      return this._addRule((v, data) => {
+         const res1 = this.run(v, data)
+         if (res1.errors.length === 0) return { error: null, value: res1.value }
+         const res2 = otherBuilder.run(v, data)
+         if (res2.errors.length === 0) return { error: null, value: res2.value }
+         return { error: 'No coincide con ninguna opción', value: v }
+      })
+   }
+
+   and(otherBuilder) {
+      return this._addRule((v, data) => {
+         const res1 = this.run(v, data)
+         if (res1.errors.length > 0) return { error: res1.errors[0], value: v }
+         const res2 = otherBuilder.run(res1.value, data)
+         return { error: res2.errors[0] || null, value: res2.value }
+      })
    }
 
    // --- NUMBERS ---
@@ -187,6 +251,21 @@ class ValidatorBuilder {
       return this._addRule((v) => ({ error: Number(v) % n === 0 ? null : message, value: v }))
    }
 
+   safe(message) {
+      return this._addRule((v) => ({
+         error: Number.isSafeInteger(Number(v)) ? null : message,
+         value: v,
+      }))
+   }
+
+   port(message) {
+      return this._addRule((v) => {
+         const p = Number(v)
+         const ok = Number.isInteger(p) && p >= 0 && p <= 65535
+         return { error: ok ? null : message, value: v }
+      })
+   }
+
    // --- FILES ---
 
    file(options = {}, message) {
@@ -207,11 +286,16 @@ class ValidatorBuilder {
       })
    }
 
+   base64(message) {
+      const regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
+      return this._addRule((v) => ({
+         error: typeof v === 'string' && regex.test(v) ? null : message,
+         value: v,
+      }))
+   }
+
    // --- COMPLEX ---
 
-   /**
-    * Valida cada elemento de un array usando una regla/builder.
-    */
    elements(itemBuilder) {
       return this._addRule((v) => {
          if (!Array.isArray(v)) return { error: 'Debe ser una lista', value: v }
@@ -226,9 +310,6 @@ class ValidatorBuilder {
       })
    }
 
-   /**
-    * Valida un objeto donde todos los valores deben cumplir una regla (Diccionario).
-    */
    record(valueBuilder) {
       return this._addRule((v) => {
          if (typeof v !== 'object' || v === null || Array.isArray(v)) return { error: 'Debe ser un objeto', value: v }
@@ -252,6 +333,45 @@ class ValidatorBuilder {
 
    // --- SPECIALIZED ---
 
+   date(message) {
+      return this._addRule((v) => {
+         const d = new Date(v)
+         const isValid = !isNaN(d.getTime())
+         return { error: isValid ? null : message, value: isValid ? d : v }
+      })
+   }
+
+   minDate(date, message) {
+      return this._addRule((v) => {
+         const d = v instanceof Date ? v : new Date(v)
+         const limit = date instanceof Date ? date : new Date(date)
+         return { error: d >= limit ? null : message, value: v }
+      })
+   }
+
+   maxDate(date, message) {
+      return this._addRule((v) => {
+         const d = v instanceof Date ? v : new Date(v)
+         const limit = date instanceof Date ? date : new Date(date)
+         return { error: d <= limit ? null : message, value: v }
+      })
+   }
+
+   phone(message) {
+      const regex = /^\+?[1-9]\d{1,14}$/
+      return this._addRule((v) => ({
+         error: regex.test(String(v).replace(/\s/g, '')) ? null : message,
+         value: v,
+      }))
+   }
+
+   oneOf(values, message) {
+      return this._addRule((v) => ({
+         error: values.includes(v) ? null : message,
+         value: v,
+      }))
+   }
+
    creditCard(message) {
       return this._addRule((v) => {
          const s = String(v).replace(/\D/g, '')
@@ -268,6 +388,22 @@ class ValidatorBuilder {
          const valid = sum !== 0 && sum % 10 === 0
          return { error: valid ? null : message, value: v }
       })
+   }
+
+   cvv(message) {
+      const regex = /^[0-9]{3,4}$/
+      return this._addRule((v) => ({
+         error: regex.test(String(v)) ? null : message,
+         value: v,
+      }))
+   }
+
+   macAddress(message) {
+      const regex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/
+      return this._addRule((v) => ({
+         error: regex.test(String(v)) ? null : message,
+         value: v,
+      }))
    }
 
    json(message) {
@@ -287,14 +423,21 @@ class ValidatorBuilder {
 
    // --- CORE ---
 
+   equalsField(fieldName, message) {
+      return this._addRule((v, data) => ({
+         error: v === data?.[fieldName] ? null : message,
+         value: v,
+      }))
+   }
+
    refine(fn, message) {
-      return this._addRule((v) => ({ error: fn(v) ? null : message, value: v }))
+      return this._addRule((v, data) => ({ error: fn(v, data) ? null : message, value: v }))
    }
    transform(fn) {
       return this._addRule((v) => ({ error: null, value: fn(v) }))
    }
 
-   run(value) {
+   run(value, data) {
       let currentValue = value === undefined ? this.defaultValue : value
       if (currentValue === null && this.isNullable) return { errors: [], value: null }
 
@@ -306,7 +449,7 @@ class ValidatorBuilder {
 
       const errors = []
       for (const rule of this.rules) {
-         const result = rule(currentValue)
+         const result = rule(currentValue, data)
          if (result.error) errors.push(result.error)
          currentValue = result.value
       }
@@ -317,12 +460,12 @@ class ValidatorBuilder {
 // --- EXPORTS ---
 
 export const string = (m) => new ValidatorBuilder().string(m)
+export const object = (m) => new ValidatorBuilder().object(m)
+export const array = (m) => new ValidatorBuilder().array(m)
 export const number = (m) => new ValidatorBuilder().number(m)
 export const integer = (m) => new ValidatorBuilder().integer(m)
 export const boolean = (m) => new ValidatorBuilder().boolean(m)
 export const date = (m) => new ValidatorBuilder().date(m)
-export const object = (m) => new ValidatorBuilder().object(m)
-export const array = (m) => new ValidatorBuilder().array(m)
 export const optional = () => new ValidatorBuilder().optional()
 export const nullable = () => new ValidatorBuilder().nullable()
 export const nullish = () => new ValidatorBuilder().nullish()
@@ -334,18 +477,40 @@ export const elements = (b) => new ValidatorBuilder().elements(b)
 export const record = (b) => new ValidatorBuilder().record(b)
 export const json = (m) => new ValidatorBuilder().json(m)
 export const truthy = (m) => new ValidatorBuilder().truthy(m)
+export const slug = (m) => new ValidatorBuilder().slug(m)
+export const hexColor = (m) => new ValidatorBuilder().hexColor(m)
+export const cvv = (m) => new ValidatorBuilder().cvv(m)
+export const port = (m) => new ValidatorBuilder().port(m)
+export const macAddress = (m) => new ValidatorBuilder().macAddress(m)
+export const matches = (r, m) => new ValidatorBuilder().matches(r, m)
+export const phone = (m) => new ValidatorBuilder().phone(m)
+export const equalsField = (f, m) => new ValidatorBuilder().equalsField(f, m)
+export const base64 = (m) => new ValidatorBuilder().base64(m)
+export const file = (opt, m) => new ValidatorBuilder().file(opt, m)
+export const image = (m) => new ValidatorBuilder().image(m)
 
 /**
  * Motor de validación.
  */
-export const validate = (data, validationSchema) => {
+export const validate = (data, validationSchema, options = {}) => {
    const errors = {}
    const validatedData = {}
 
    for (const field in validationSchema) {
-      const result = validationSchema[field].run(data[field])
-      if (result.errors.length > 0) errors[field] = result.errors
-      else validatedData[field] = result.value
+      if (validationSchema[field] instanceof ValidatorBuilder) {
+         const result = validationSchema[field].run(data[field], data)
+         if (result.errors.length > 0) errors[field] = result.errors
+         else validatedData[field] = result.value
+      }
+   }
+
+   if (options.strict) {
+      const schemaKeys = Object.keys(validationSchema)
+      for (const key in data) {
+         if (!schemaKeys.includes(key)) {
+            errors[key] = ['Campo no permitido (Strict Mode)']
+         }
+      }
    }
 
    const isValid = Object.keys(errors).length === 0
