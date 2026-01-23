@@ -1,522 +1,291 @@
 /**
- * Clase que construye el encadenamiento de reglas de validación.
- * Soporta validación obligatoria por defecto, transformaciones, esquemas anidados y reglas avanzadas.
+ * VALIDATOR GOD-TIER (Branching Version)
+ * Zero Recursion | Snapshot Safe | Pure JS
  */
 class ValidatorBuilder {
    constructor() {
-      this.rules = [] // Cada regla es (value) => { error: string|any|null, value: any }
+      this.rules = []
       this.isOptional = false
       this.isNullable = false
-      this.requiredMsg = null
+      this.requiredMsg = 'Requerido'
       this.defaultValue = undefined
    }
 
-   /**
-    * Marca el campo como opcional. Si el valor es null, undefined o "", se saltan las validaciones.
-    */
    optional() {
       this.isOptional = true
       return this
    }
-
-   /**
-    * Permite que el valor sea explícitamente null.
-    */
    nullable() {
       this.isNullable = true
       return this
    }
-
-   /**
-    * Atajo para .optional().nullable()
-    */
    nullish() {
       this.isOptional = true
       this.isNullable = true
       return this
    }
-
-   /**
-    * Define un valor por defecto si el dato original está vacío o no existe.
-    */
-   default(value) {
-      this.defaultValue = value
+   default(v) {
+      this.defaultValue = v
+      return this
+   }
+   required(m) {
+      if (m) this.requiredMsg = m
       return this
    }
 
-   /**
-    * Define un mensaje personalizado para cuando el campo obligatorio falta.
-    */
-   required(message) {
-      this.requiredMsg = message
-      return this
-   }
-
-   /**
-    * Agrega una regla de validación o transformación interna.
-    */
    _addRule(fn) {
       this.rules.push(fn)
       return this
    }
 
-   // --- STRINGS ---
-
-   string(message) {
+   // --- BASIC ---
+   string(m = 'Debe ser string') {
+      return this._addRule((v) => ({ error: typeof v === 'string' ? null : m, value: v }))
+   }
+   object(m = 'Debe ser objeto') {
       return this._addRule((v) => ({
-         error: typeof v === 'string' ? null : message,
+         error: typeof v === 'object' && v !== null && !Array.isArray(v) ? null : m,
          value: v,
       }))
    }
-
-   object(message) {
-      return this._addRule((v) => ({
-         error: typeof v === 'object' && v !== null && !Array.isArray(v) ? null : message,
-         value: v,
-      }))
+   array(m = 'Debe ser array') {
+      return this._addRule((v) => ({ error: Array.isArray(v) ? null : m, value: v }))
    }
 
-   array(message) {
-      return this._addRule((v) => ({
-         error: Array.isArray(v) ? null : message,
-         value: v,
-      }))
-   }
-
-   length(len, message) {
-      return this._addRule((v) => ({
-         error: v?.length === len ? null : message,
-         value: v,
-      }))
-   }
-
-   min(len, message) {
-      return this._addRule((v) => ({
-         error: v?.length >= len ? null : message,
-         value: v,
-      }))
-   }
-
-   max(len, message) {
-      return this._addRule((v) => ({
-         error: v?.length <= len ? null : message,
-         value: v,
-      }))
-   }
-
-   email(message) {
-      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
-         value: v,
-      }))
-   }
-
-   url(message) {
+   number(m = 'Debe ser número') {
       return this._addRule((v) => {
-         try {
-            new URL(v)
-            return { error: null, value: v }
-         } catch {
-            return { error: message, value: v }
-         }
+         const n = Number(v)
+         const ok = v !== '' && v !== null && !isNaN(n)
+         return { error: ok ? null : m, value: ok ? n : v }
+      })
+   }
+   integer(m = 'Debe ser entero') {
+      return this._addRule((v) => {
+         const n = Number(v)
+         const ok = v !== '' && v !== null && Number.isInteger(n)
+         return { error: ok ? null : m, value: ok ? n : v }
+      })
+   }
+   boolean(m = 'Debe ser booleano') {
+      return this._addRule((v) => {
+         if (typeof v === 'boolean') return { error: null, value: v }
+         if (v === 'true' || v === '1' || v === 1) return { error: null, value: true }
+         if (v === 'false' || v === '0' || v === 0) return { error: null, value: false }
+         return { error: m, value: v }
       })
    }
 
-   uuid(message) {
-      const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+   // --- CONSTRAINTS ---
+   min(len, m = 'Demasiado corto') {
       return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
+         error: v !== null && v !== undefined && String(v).length >= len ? null : m,
          value: v,
       }))
    }
-
-   /**
-    * Valida formato de IP (v4, v6 o cualquiera).
-    */
-   ip(message, version = 'all') {
-      const ipv4 = /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/
-      const ipv6 =
-         /^(?:(?:[a-fA-F\d]{1,4}:){7}(?:[a-fA-F\d]{1,4}|:)|(?:[a-fA-F\d]{1,4}:){6}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,2}|:)|(?:[a-fA-F\d]{1,4}:){5}(?::(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,3}|:)|(?:[a-fA-F\d]{1,4}:){4}(?::(?:[a-fA-F\d]{1,4}:){0,1}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,4}|:)|(?:[a-fA-F\d]{1,4}:){3}(?::(?:[a-fA-F\d]{1,4}:){0,2}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,5}|:)|(?:[a-fA-F\d]{1,4}:){2}(?::(?:[a-fA-F\d]{1,4}:){0,3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,6}|:)|(?:[a-fA-F\d]{1,4}:){1}(?::(?:[a-fA-F\d]{1,4}:){0,4}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,7}|:)|(?::(?:(?::[a-fA-F\d]{1,4}){1,7}|(?::(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3})|:)))(?:%[0-9a-zA-Z]{1,})?$/
-      return this._addRule((v) => {
-         let valid = false
-         if (version === 'v4') valid = ipv4.test(v)
-         else if (version === 'v6') valid = ipv6.test(v)
-         else valid = ipv4.test(v) || ipv6.test(v)
-         return { error: valid ? null : message, value: v }
-      })
-   }
-
-   /**
-    * Valida contra una expresión regular personalizada.
-    */
-   matches(regex, message) {
+   max(len, m = 'Demasiado largo') {
       return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
+         error: v !== null && v !== undefined && String(v).length <= len ? null : m,
          value: v,
       }))
    }
-
-   alphanumeric(message) {
-      const regex = /^[a-z0-9]+$/i
-      return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
-         value: v,
-      }))
+   length(len, m = 'Longitud inválida') {
+      return this._addRule((v) => ({ error: String(v).length === len ? null : m, value: v }))
    }
 
-   slug(message) {
-      const regex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-      return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
-         value: v,
-      }))
-   }
-
-   hexColor(message) {
-      const regex = /^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
-      return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
-         value: v,
-      }))
-   }
-
-   trim() {
-      return this._addRule((v) => ({ error: null, value: typeof v === 'string' ? v.trim() : v }))
-   }
-
-   toLowerCase() {
-      return this._addRule((v) => ({ error: null, value: typeof v === 'string' ? v.toLowerCase() : v }))
-   }
-
-   toUpperCase() {
-      return this._addRule((v) => ({ error: null, value: typeof v === 'string' ? v.toUpperCase() : v }))
-   }
-
-   // --- LOGICAL ---
-
-   or(otherBuilder) {
-      return this._addRule((v, data) => {
-         const res1 = this.run(v, data)
-         if (res1.errors.length === 0) return { error: null, value: res1.value }
-         const res2 = otherBuilder.run(v, data)
-         if (res2.errors.length === 0) return { error: null, value: res2.value }
+   // --- LOGICAL (RECURSION-SAFE BRANCHING) ---
+   or(other) {
+      // Retornamos un NUEVO constructor para romper la cadena y evitar recursión
+      const current = this
+      return new ValidatorBuilder()._addRule((v, d) => {
+         const r1 = current.run(v, d)
+         if (r1.errors.length === 0) return { error: null, value: r1.value }
+         const r2 = other.run(v, d)
+         if (r2.errors.length === 0) return { error: null, value: r2.value }
          return { error: 'No coincide con ninguna opción', value: v }
       })
    }
-
-   and(otherBuilder) {
-      return this._addRule((v, data) => {
-         const res1 = this.run(v, data)
-         if (res1.errors.length > 0) return { error: res1.errors[0], value: v }
-         const res2 = otherBuilder.run(res1.value, data)
-         return { error: res2.errors[0] || null, value: res2.value }
+   and(other) {
+      const current = this
+      return new ValidatorBuilder()._addRule((v, d) => {
+         const r1 = current.run(v, d)
+         if (r1.errors.length > 0) return { error: r1.errors[0], value: v }
+         const r2 = other.run(r1.value, d)
+         return { error: r2.errors[0] || null, value: r2.value }
       })
-   }
-
-   // --- NUMBERS ---
-
-   number(message) {
-      return this._addRule((v) => {
-         const n = Number(v)
-         const isValid = v !== '' && v !== null && !isNaN(n)
-         return { error: isValid ? null : message, value: isValid ? n : v }
-      })
-   }
-
-   integer(message) {
-      return this._addRule((v) => {
-         const n = Number(v)
-         const isValid = v !== '' && v !== null && Number.isInteger(n)
-         return { error: isValid ? null : message, value: isValid ? n : v }
-      })
-   }
-
-   minValue(min, message) {
-      return this._addRule((v) => ({ error: Number(v) >= min ? null : message, value: v }))
-   }
-
-   maxValue(max, message) {
-      return this._addRule((v) => ({ error: Number(v) <= max ? null : message, value: v }))
-   }
-
-   positive(message) {
-      return this.minValue(1e-10, message)
-   }
-   negative(message) {
-      return this.maxValue(-1e-10, message)
-   }
-
-   multipleOf(n, message) {
-      return this._addRule((v) => ({ error: Number(v) % n === 0 ? null : message, value: v }))
-   }
-
-   safe(message) {
-      return this._addRule((v) => ({
-         error: Number.isSafeInteger(Number(v)) ? null : message,
-         value: v,
-      }))
-   }
-
-   port(message) {
-      return this._addRule((v) => {
-         const p = Number(v)
-         const ok = Number.isInteger(p) && p >= 0 && p <= 65535
-         return { error: ok ? null : message, value: v }
-      })
-   }
-
-   // --- FILES ---
-
-   file(options = {}, message) {
-      const { maxSize, allowedTypes } = options
-      return this._addRule((v) => {
-         const isFile = v && typeof v === 'object' && (v.size !== undefined || v.mimetype !== undefined)
-         if (!isFile) return { error: message, value: v }
-         if (maxSize && v.size > maxSize) return { error: `File too large`, value: v }
-         if (allowedTypes && !allowedTypes.includes(v.mimetype)) return { error: `Invalid type`, value: v }
-         return { error: null, value: v }
-      })
-   }
-
-   image(message) {
-      return this._addRule((v) => {
-         const isImg = (typeof v === 'string' && v.startsWith('data:image/')) || v?.mimetype?.startsWith('image/')
-         return { error: isImg ? null : message, value: v }
-      })
-   }
-
-   base64(message) {
-      const regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
-      return this._addRule((v) => ({
-         error: typeof v === 'string' && regex.test(v) ? null : message,
-         value: v,
-      }))
    }
 
    // --- COMPLEX ---
-
-   elements(itemBuilder) {
+   elements(b) {
       return this._addRule((v) => {
-         if (!Array.isArray(v)) return { error: 'Debe ser una lista', value: v }
-         const errors = []
-         const values = []
-         v.forEach((item, idx) => {
-            const res = itemBuilder.run(item)
-            if (res.errors.length > 0) errors.push({ index: idx, errors: res.errors })
-            values.push(res.value)
+         if (!Array.isArray(v)) return { error: 'Debe ser array', value: v }
+         const es = []
+         const vs = []
+         v.forEach((it, i) => {
+            const r = b.run(it)
+            if (r.errors.length > 0) es.push({ index: i, errors: r.errors })
+            vs.push(r.value)
          })
-         return { error: errors.length > 0 ? errors : null, value: values }
+         return { error: es.length > 0 ? es : null, value: vs }
       })
    }
-
-   record(valueBuilder) {
+   record(b) {
       return this._addRule((v) => {
-         if (typeof v !== 'object' || v === null || Array.isArray(v)) return { error: 'Debe ser un objeto', value: v }
-         const errors = {}
-         const values = {}
-         for (const key in v) {
-            const res = valueBuilder.run(v[key])
-            if (res.errors.length > 0) errors[key] = res.errors
-            values[key] = res.value
+         if (typeof v !== 'object' || v === null || Array.isArray(v)) return { error: 'Debe ser objeto', value: v }
+         const es = {}
+         const vs = {}
+         for (const k in v) {
+            const r = b.run(v[k])
+            if (r.errors.length > 0) es[k] = r.errors
+            vs[k] = r.value
          }
-         return { error: Object.keys(errors).length > 0 ? errors : null, value: values }
+         return { error: Object.keys(es).length > 0 ? es : null, value: vs }
       })
    }
-
-   schema(innerSchema) {
+   schema(s) {
       return this._addRule((v) => {
-         const res = validate(v, innerSchema)
+         const res = validate(v, s)
          return { error: res.success ? null : res.errors, value: res.data }
       })
    }
 
    // --- SPECIALIZED ---
-
-   date(message) {
-      return this._addRule((v) => {
-         const d = new Date(v)
-         const isValid = !isNaN(d.getTime())
-         return { error: isValid ? null : message, value: isValid ? d : v }
-      })
+   email(m = 'Email inválido') {
+      return this._addRule((v) => ({ error: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v)) ? null : m, value: v }))
    }
-
-   minDate(date, message) {
-      return this._addRule((v) => {
-         const d = v instanceof Date ? v : new Date(v)
-         const limit = date instanceof Date ? date : new Date(date)
-         return { error: d >= limit ? null : message, value: v }
-      })
-   }
-
-   maxDate(date, message) {
-      return this._addRule((v) => {
-         const d = v instanceof Date ? v : new Date(v)
-         const limit = date instanceof Date ? date : new Date(date)
-         return { error: d <= limit ? null : message, value: v }
-      })
-   }
-
-   phone(message) {
-      const regex = /^\+?[1-9]\d{1,14}$/
+   uuid(m = 'UUID inválido') {
       return this._addRule((v) => ({
-         error: regex.test(String(v).replace(/\s/g, '')) ? null : message,
+         error: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v)) ? null : m,
          value: v,
       }))
    }
-
-   oneOf(values, message) {
-      return this._addRule((v) => ({
-         error: values.includes(v) ? null : message,
-         value: v,
-      }))
-   }
-
-   creditCard(message) {
-      return this._addRule((v) => {
-         const s = String(v).replace(/\D/g, '')
-         let sum = 0
-         let shouldDouble = false
-         for (let i = s.length - 1; i >= 0; i--) {
-            let digit = parseInt(s.charAt(i))
-            if (shouldDouble) {
-               if ((digit *= 2) > 9) digit -= 9
-            }
-            sum += digit
-            shouldDouble = !shouldDouble
-         }
-         const valid = sum !== 0 && sum % 10 === 0
-         return { error: valid ? null : message, value: v }
-      })
-   }
-
-   cvv(message) {
-      const regex = /^[0-9]{3,4}$/
-      return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
-         value: v,
-      }))
-   }
-
-   macAddress(message) {
-      const regex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/
-      return this._addRule((v) => ({
-         error: regex.test(String(v)) ? null : message,
-         value: v,
-      }))
-   }
-
-   json(message) {
+   url(m = 'URL inválida') {
       return this._addRule((v) => {
          try {
-            const parsed = JSON.parse(v)
-            return { error: null, value: parsed }
+            new URL(v)
+            return { error: null, value: v }
          } catch {
-            return { error: message, value: v }
+            return { error: m, value: v }
          }
       })
    }
-
-   truthy(message) {
-      return this._addRule((v) => ({ error: !!v ? null : message, value: v }))
+   date(m = 'Fecha inválida') {
+      return this._addRule((v) => {
+         const d = new Date(v)
+         return { error: !isNaN(d.getTime()) ? null : m, value: d }
+      })
+   }
+   oneOf(vals, m = 'Valor fuera de rango') {
+      return this._addRule((v) => ({ error: vals.includes(v) ? null : m, value: v }))
+   }
+   json(m = 'JSON inválido') {
+      return this._addRule((v) => {
+         try {
+            return { error: null, value: JSON.parse(v) }
+         } catch {
+            return { error: m, value: v }
+         }
+      })
+   }
+   truthy(m = 'Debe ser verdadero') {
+      return this._addRule((v) => ({ error: !!v ? null : m, value: v }))
+   }
+   port(m = 'Puerto inválido') {
+      return this._addRule((v) => {
+         const p = Number(v)
+         return { error: Number.isInteger(p) && p >= 0 && p <= 65535 ? null : m, value: v }
+      })
+   }
+   slug(m = 'Slug inválido') {
+      return this._addRule((v) => ({ error: /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(v)) ? null : m, value: v }))
+   }
+   hexColor(m = 'Color hex inválido') {
+      return this._addRule((v) => ({
+         error: /^#?([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(String(v)) ? null : m,
+         value: v,
+      }))
    }
 
    // --- CORE ---
-
-   equalsField(fieldName, message) {
-      return this._addRule((v, data) => ({
-         error: v === data?.[fieldName] ? null : message,
-         value: v,
-      }))
+   equalsField(f, m = 'Los campos no coinciden') {
+      return this._addRule((v, d) => ({ error: v === d?.[f] ? null : m, value: v }))
    }
-
-   refine(fn, message) {
-      return this._addRule((v, data) => ({ error: fn(v, data) ? null : message, value: v }))
+   refine(fn, m = 'Fallo de refinamiento') {
+      return this._addRule((v, d) => ({ error: fn(v, d) ? null : m, value: v }))
    }
    transform(fn) {
       return this._addRule((v) => ({ error: null, value: fn(v) }))
    }
 
    run(value, data) {
-      let currentValue = value === undefined ? this.defaultValue : value
-      if (currentValue === null && this.isNullable) return { errors: [], value: null }
+      let cur = value === undefined ? this.defaultValue : value
+      if (cur === null && this.isNullable) return { errors: [], value: null }
 
-      const isEmpty = currentValue === undefined || currentValue === null || currentValue === ''
-      if (isEmpty) {
-         if (this.isOptional) return { errors: [], value: currentValue }
-         return { errors: [this.requiredMsg || 'Requerido'], value: currentValue }
+      const empty = cur === undefined || cur === null || cur === ''
+      if (empty) {
+         if (this.isOptional) return { errors: [], value: cur }
+         return { errors: [this.requiredMsg], value: cur }
       }
 
-      const errors = []
-      for (const rule of this.rules) {
-         const result = rule(currentValue, data)
-         if (result.error) errors.push(result.error)
-         currentValue = result.value
+      const es = []
+      for (const r of this.rules) {
+         const res = r(cur, data)
+         if (res.error) {
+            if (Array.isArray(res.error)) es.push(...res.error)
+            else es.push(res.error)
+         }
+         cur = res.value
       }
-      return { errors, value: currentValue }
+      return { errors: es, value: cur }
    }
 }
 
-// --- EXPORTS ---
-
-export const string = (m) => new ValidatorBuilder().string(m)
-export const object = (m) => new ValidatorBuilder().object(m)
-export const array = (m) => new ValidatorBuilder().array(m)
-export const number = (m) => new ValidatorBuilder().number(m)
-export const integer = (m) => new ValidatorBuilder().integer(m)
-export const boolean = (m) => new ValidatorBuilder().boolean(m)
-export const date = (m) => new ValidatorBuilder().date(m)
-export const optional = () => new ValidatorBuilder().optional()
-export const nullable = () => new ValidatorBuilder().nullable()
-export const nullish = () => new ValidatorBuilder().nullish()
-export const oneOf = (v, m) => new ValidatorBuilder().oneOf(v, m)
-export const uuid = (m) => new ValidatorBuilder().uuid(m)
-export const url = (m) => new ValidatorBuilder().url(m)
-export const schema = (s) => new ValidatorBuilder().schema(s)
-export const elements = (b) => new ValidatorBuilder().elements(b)
-export const record = (b) => new ValidatorBuilder().record(b)
-export const json = (m) => new ValidatorBuilder().json(m)
-export const truthy = (m) => new ValidatorBuilder().truthy(m)
-export const slug = (m) => new ValidatorBuilder().slug(m)
-export const hexColor = (m) => new ValidatorBuilder().hexColor(m)
-export const cvv = (m) => new ValidatorBuilder().cvv(m)
-export const port = (m) => new ValidatorBuilder().port(m)
-export const macAddress = (m) => new ValidatorBuilder().macAddress(m)
-export const matches = (r, m) => new ValidatorBuilder().matches(r, m)
-export const phone = (m) => new ValidatorBuilder().phone(m)
-export const equalsField = (f, m) => new ValidatorBuilder().equalsField(f, m)
-export const base64 = (m) => new ValidatorBuilder().base64(m)
-export const file = (opt, m) => new ValidatorBuilder().file(opt, m)
-export const image = (m) => new ValidatorBuilder().image(m)
-
-/**
- * Motor de validación.
- */
-export const validate = (data, validationSchema, options = {}) => {
+const validate = (data, schema, opt = {}) => {
    const errors = {}
-   const validatedData = {}
-
-   for (const field in validationSchema) {
-      if (validationSchema[field] instanceof ValidatorBuilder) {
-         const result = validationSchema[field].run(data[field], data)
-         if (result.errors.length > 0) errors[field] = result.errors
-         else validatedData[field] = result.value
+   const validated = {}
+   for (const f in schema) {
+      if (schema[f] instanceof ValidatorBuilder) {
+         const res = schema[f].run(data?.[f], data)
+         if (res.errors.length > 0) errors[f] = res.errors
+         else validated[f] = res.value
       }
    }
-
-   if (options.strict) {
-      const schemaKeys = Object.keys(validationSchema)
-      for (const key in data) {
-         if (!schemaKeys.includes(key)) {
-            errors[key] = ['Campo no permitido (Strict Mode)']
-         }
-      }
+   if (opt.strict && data) {
+      const keys = Object.keys(schema)
+      for (const k in data) if (!keys.includes(k)) errors[k] = ['Campo no permitido']
    }
+   const ok = Object.keys(errors).length === 0
+   return { success: ok, errors: ok ? null : errors, data: ok ? validated : null }
+}
 
-   const isValid = Object.keys(errors).length === 0
-   return {
-      success: isValid,
-      errors: isValid ? null : errors,
-      data: isValid ? validatedData : null,
-   }
+const createBuilder =
+   (key) =>
+   (...args) =>
+      new ValidatorBuilder()[key](...args)
+
+module.exports = {
+   ValidatorBuilder,
+   validate,
+   string: createBuilder('string'),
+   object: createBuilder('object'),
+   array: createBuilder('array'),
+   number: createBuilder('number'),
+   integer: createBuilder('integer'),
+   boolean: createBuilder('boolean'),
+   date: createBuilder('date'),
+   optional: () => new ValidatorBuilder().optional(),
+   nullable: () => new ValidatorBuilder().nullable(),
+   nullish: () => new ValidatorBuilder().nullish(),
+   oneOf: createBuilder('oneOf'),
+   uuid: createBuilder('uuid'),
+   url: createBuilder('url'),
+   email: createBuilder('email'),
+   schema: createBuilder('schema'),
+   elements: createBuilder('elements'),
+   record: createBuilder('record'),
+   json: createBuilder('json'),
+   truthy: createBuilder('truthy'),
+   slug: createBuilder('slug'),
+   hexColor: createBuilder('hexColor'),
+   port: createBuilder('port'),
+   equalsField: createBuilder('equalsField'),
 }
