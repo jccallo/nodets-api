@@ -6,26 +6,30 @@ class NumberValidator extends BaseValidator {
          const n = Number(v)
          const isValid = v !== '' && v !== null && !isNaN(n)
 
-         if (!isValid) return { valid: false, error: msg, value: v }
-
-         // Transformación según presencia de punto decimal
-         let transformedValue = n
-         const stringVal = String(v)
-
-         if (stringVal.includes('.')) {
-            // Si tiene punto, tomamos solo los primeros 2 decimales (truncado, no redondeado)
-            const [intPart, decPart] = stringVal.split('.')
-            transformedValue = Number(`${intPart}.${decPart.substring(0, 2)}`)
-         } else {
-            // Si no tiene punto, lo tratamos como entero
-            transformedValue = Math.round(n)
+         return {
+            valid: isValid,
+            error: msg,
+            value: v, // No transformamos aquí
          }
-         // console.log(`Debug: v=${v}, n=${n}, transformed=${transformedValue}`);
+      })
+   }
+
+   convert(digits = 2, mode = 'trunc') {
+      return this._addRule((v) => {
+         const n = Number(v)
+         const power = Math.pow(10, digits)
+         let transformedValue
+
+         if (mode === 'trunc') {
+            transformedValue = Math.trunc(n * power) / power
+         } else {
+            transformedValue = Math.round(n * power) / power
+         }
 
          return {
             valid: true,
             error: null,
-            value: transformedValue,
+            value: transformedValue, // Aquí sí aseguramos que sea Number y aplicamos la lógica
          }
       })
    }

@@ -50,6 +50,15 @@ class FluentValidator {
       if (this._requiredMsg) v.required(this._requiredMsg)
       return v.number(...args)
    }
+
+   convert(...args) {
+      // Este método solo tiene sentido si el validador actual es de tipo número
+      // Pero como FluentValidator es un constructor de cadenas, simplemente delegamos
+      // al validador final si es NumberValidator.
+      // En una arquitectura más compleja podríamos validar el tipo aquí,
+      // pero por ahora seguimos la fluidez.
+      return this.number().convert(...args)
+   }
 }
 
 const validate = (data, schema) => {
