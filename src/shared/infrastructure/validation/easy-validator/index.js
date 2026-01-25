@@ -1,5 +1,6 @@
 const StringValidator = require('./string-validator')
 const ArrayValidator = require('./array-validator')
+const NumberValidator = require('./number-validator')
 const BaseValidator = require('./base-validator')
 
 /**
@@ -34,6 +35,13 @@ class FluentValidator {
       if (this._isNullable) v.nullable()
       return v.array(...args)
    }
+
+   number(...args) {
+      const v = new NumberValidator()
+      if (this._isOptional) v.optional()
+      if (this._isNullable) v.nullable()
+      return v.number(...args)
+   }
 }
 
 const validate = (data, schema) => {
@@ -64,6 +72,7 @@ const validate = (data, schema) => {
 module.exports = {
    string: () => new StringValidator().string(),
    array: () => new ArrayValidator().array(),
+   number: () => new NumberValidator().number(),
    optional: () => new FluentValidator().optional(),
    nullable: () => new FluentValidator().nullable(),
    validate,
