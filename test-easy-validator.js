@@ -4,11 +4,12 @@ const {
    nullable,
    optional,
    array,
+   required,
 } = require('./src/shared/infrastructure/validation/easy-validator/index.js')
 
 const schema = {
-   name: string().min(3).max(10),
-   role: string().inList(['Admin', 'Moderator']),
+   name: required('Nombre es súper obligatorio').string().min(3).max(10),
+   role: string().required('Rol es obligatorio').inList(['Admin', 'Moderator']),
    bio: string().includes('node'),
    website: string().optional().includes('http'),
    deletedAt: optional().nullable().string(),
@@ -116,6 +117,26 @@ const testCases = [
       },
       expectSuccess: false,
    },
+   {
+      name: 'Case 11: Custom required message',
+      data: {
+         name: '', // Empty name for required failure
+         role: 'Admin',
+         bio: 'node fan',
+      },
+      expectSuccess: false,
+      verify: (errors) => errors.name.includes('Nombre es súper obligatorio'),
+   },
+   {
+      name: 'Case 12: Custom required message AT THE END',
+      data: {
+         name: 'Carlos',
+         role: '', // Empty role for required failure
+         bio: 'node fan',
+      },
+      expectSuccess: false,
+      verify: (errors) => errors.role.includes('Rol es obligatorio'),
+   },
 ]
 
 console.log('--- STARTING EASY-VALIDATOR TESTS ---\n')
@@ -124,8 +145,9 @@ testCases.forEach((tc) => {
    const result = validate(tc.data, schema)
    let passed = result.success === tc.expectSuccess
 
-   if (passed && tc.expectSuccess && tc.verify) {
-      if (!tc.verify(result.data)) passed = false
+   if (passed && tc.verify) {
+      const param = tc.expectSuccess ? result.data : result.errors
+      if (!tc.verify(param)) passed = false
    }
 
    if (passed) {

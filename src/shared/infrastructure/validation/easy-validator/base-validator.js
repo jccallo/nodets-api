@@ -16,6 +16,11 @@ class BaseValidator {
       return this
    }
 
+   required(msg) {
+      if (msg) this.requiredMsg = msg
+      return this
+   }
+
    _addRule(fn) {
       this.rules.push(fn)
       return this

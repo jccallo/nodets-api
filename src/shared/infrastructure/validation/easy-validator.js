@@ -20,6 +20,11 @@ class EasyValidator {
       return this
    }
 
+   required(msg) {
+      if (msg) this.requiredMsg = msg
+      return this
+   }
+
    _addRule(fn) {
       this.rules.push(fn)
       return this
@@ -122,6 +127,7 @@ const validate = (data, schema) => {
 const string = () => new EasyValidator().string()
 const optional = () => new EasyValidator().optional()
 const nullable = () => new EasyValidator().nullable()
+const required = (msg) => new EasyValidator().required(msg)
 
 module.exports = {
    EasyValidator,
@@ -129,4 +135,5 @@ module.exports = {
    string,
    optional,
    nullable,
+   required,
 }

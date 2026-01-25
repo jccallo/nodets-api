@@ -22,10 +22,16 @@ class FluentValidator {
       return this
    }
 
+   required(msg) {
+      this._requiredMsg = msg
+      return this
+   }
+
    string(...args) {
       const v = new StringValidator()
       if (this._isOptional) v.optional()
       if (this._isNullable) v.nullable()
+      if (this._requiredMsg) v.required(this._requiredMsg)
       return v.string(...args)
    }
 
@@ -33,6 +39,7 @@ class FluentValidator {
       const v = new ArrayValidator()
       if (this._isOptional) v.optional()
       if (this._isNullable) v.nullable()
+      if (this._requiredMsg) v.required(this._requiredMsg)
       return v.array(...args)
    }
 
@@ -40,6 +47,7 @@ class FluentValidator {
       const v = new NumberValidator()
       if (this._isOptional) v.optional()
       if (this._isNullable) v.nullable()
+      if (this._requiredMsg) v.required(this._requiredMsg)
       return v.number(...args)
    }
 }
@@ -75,5 +83,6 @@ module.exports = {
    number: () => new NumberValidator().number(),
    optional: () => new FluentValidator().optional(),
    nullable: () => new FluentValidator().nullable(),
+   required: (msg) => new FluentValidator().required(msg),
    validate,
 }
