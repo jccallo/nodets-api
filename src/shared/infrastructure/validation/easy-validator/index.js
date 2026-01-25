@@ -2,6 +2,7 @@ const StringValidator = require('./string-validator')
 const ArrayValidator = require('./array-validator')
 const NumberValidator = require('./number-validator')
 const BooleanValidator = require('./boolean-validator')
+const DateValidator = require('./date-validator')
 const BaseValidator = require('./base-validator')
 
 /**
@@ -58,8 +59,17 @@ class FluentValidator {
       if (this._isOptional) v.optional()
       if (this._isNullable) v.nullable()
       if (this._requiredMsg) v.required(this._requiredMsg)
-      this._lastValidator = v // Tracker para saber qué convert usar
+      this._lastValidator = v
       return v.boolean(...args)
+   }
+
+   date(...args) {
+      const v = new DateValidator()
+      if (this._isOptional) v.optional()
+      if (this._isNullable) v.nullable()
+      if (this._requiredMsg) v.required(this._requiredMsg)
+      this._lastValidator = v
+      return v.date(...args)
    }
 
    convert(...args) {
@@ -103,6 +113,7 @@ module.exports = {
    array: () => new ArrayValidator().array(),
    number: () => new NumberValidator().number(),
    boolean: () => new BooleanValidator().boolean(),
+   date: () => new DateValidator().date(),
    optional: () => new FluentValidator().optional(),
    nullable: () => new FluentValidator().nullable(),
    required: (msg) => new FluentValidator().required(msg),
