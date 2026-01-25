@@ -1,4 +1,10 @@
-const { string, validate, nullable, optional } = require('./src/shared/infrastructure/validation/easy-validator.js')
+const {
+   string,
+   validate,
+   nullable,
+   optional,
+   array,
+} = require('./src/shared/infrastructure/validation/easy-validator/index.js')
 
 const schema = {
    name: string().min(3).max(10),
@@ -6,6 +12,7 @@ const schema = {
    bio: string().includes('node'),
    website: string().optional().includes('http'),
    deletedAt: optional().nullable().string(),
+   tags: optional().array().minLength(2).maxLength(5).includes('javascript'),
 }
 
 const testCases = [
@@ -87,7 +94,27 @@ const testCases = [
          // deletedAt is missing, and it is optional
       },
       expectSuccess: true,
-      verify: (data) => !('deletedAt' in data),
+      verify: (data) => !('deletedAt' in data) && !('tags' in data),
+   },
+   {
+      name: 'Case 9: Array success (case insensitive includes)',
+      data: {
+         name: 'Carlos',
+         role: 'admin',
+         bio: 'node fan',
+         tags: ['Node', 'JAVASCRIPT', 'Web'], // matches 'javascript'
+      },
+      expectSuccess: true,
+   },
+   {
+      name: 'Case 10: Array failure (too short or missing include)',
+      data: {
+         name: 'Carlos',
+         role: 'admin',
+         bio: 'node fan',
+         tags: ['PHP'], // too short and doesn't include javascript
+      },
+      expectSuccess: false,
    },
 ]
 
