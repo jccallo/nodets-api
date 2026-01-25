@@ -1,6 +1,7 @@
 const StringValidator = require('./string-validator')
 const ArrayValidator = require('./array-validator')
 const NumberValidator = require('./number-validator')
+const BooleanValidator = require('./boolean-validator')
 const BaseValidator = require('./base-validator')
 
 /**
@@ -48,16 +49,27 @@ class FluentValidator {
       if (this._isOptional) v.optional()
       if (this._isNullable) v.nullable()
       if (this._requiredMsg) v.required(this._requiredMsg)
+      this._lastValidator = v
       return v.number(...args)
    }
 
+   boolean(...args) {
+      const v = new BooleanValidator()
+      if (this._isOptional) v.optional()
+      if (this._isNullable) v.nullable()
+      if (this._requiredMsg) v.required(this._requiredMsg)
+      this._lastValidator = v // Tracker para saber qué convert usar
+      return v.boolean(...args)
+   }
+
    convert(...args) {
-      // Este método solo tiene sentido si el validador actual es de tipo número
-      // Pero como FluentValidator es un constructor de cadenas, simplemente delegamos
-      // al validador final si es NumberValidator.
-      // En una arquitectura más compleja podríamos validar el tipo aquí,
-      // pero por ahora seguimos la fluidez.
-      return this.number().convert(...args)
+      if (this._lastValidator instanceof NumberValidator) {
+         return this._lastValidator.convert(...args)
+      }
+      if (this._lastValidator instanceof BooleanValidator) {
+         return this._lastValidator.convert()
+      }
+      return this
    }
 }
 
@@ -90,6 +102,7 @@ module.exports = {
    string: () => new StringValidator().string(),
    array: () => new ArrayValidator().array(),
    number: () => new NumberValidator().number(),
+   boolean: () => new BooleanValidator().boolean(),
    optional: () => new FluentValidator().optional(),
    nullable: () => new FluentValidator().nullable(),
    required: (msg) => new FluentValidator().required(msg),
