@@ -79,6 +79,9 @@ class FluentValidator {
       if (this._lastValidator instanceof BooleanValidator) {
          return this._lastValidator.convert()
       }
+      if (this._lastValidator instanceof DateValidator) {
+         return this._lastValidator.convert(...args)
+      }
       return this
    }
 }

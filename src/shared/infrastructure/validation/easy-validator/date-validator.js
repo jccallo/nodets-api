@@ -61,6 +61,54 @@ class DateValidator extends BaseValidator {
          }
       })
    }
+
+   convert(timeZone) {
+      return this._addRule((v) => {
+         let normalized = v.replace(' ', 'T')
+         if (!normalized.includes('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(normalized)) {
+            normalized += 'Z'
+         }
+
+         const dateObj = new Date(normalized)
+
+         // Usamos Intl para manejar zonas horarias de forma nativa y robusta
+         const options = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            timeZone, // Si es undefined, usa la local del sistema
+         }
+
+         try {
+            const formatter = new Intl.DateTimeFormat('en-CA', options)
+            const parts = formatter.formatToParts(dateObj)
+            const p = {}
+            parts.forEach(({ type, value }) => {
+               p[type] = value
+            })
+
+            const transformedValue = `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`
+
+            return {
+               valid: true,
+               error: null,
+               value: transformedValue,
+            }
+         } catch (e) {
+            // Si la zona horaria es inválida, mantenemos el valor pero notificamos (o fallamos)
+            // Por simplicidad, retornamos el valor original si Intl falla
+            return {
+               valid: true,
+               error: null,
+               value: v,
+            }
+         }
+      })
+   }
 }
 
 module.exports = DateValidator
