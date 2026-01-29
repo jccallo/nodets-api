@@ -6,7 +6,7 @@ class DateValidator extends BaseValidator {
          if (typeof v !== 'string') return { valid: false, error: msg, value: v }
 
          // Normalización: Asegurar formato ISO y forzar UTC para que Date.parse sea consistente
-         let normalized = v.replace(' ', 'T').replace(/\//g, '-')
+         let normalized = v.replace(' ', 'T')
          if (!normalized.includes('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(normalized)) {
             normalized += 'Z'
          }
@@ -17,11 +17,11 @@ class DateValidator extends BaseValidator {
          const d = new Date(timestamp)
 
          // Validación extra: Asegurar que no sea solo hora (e.g. "12:00")
-         const hasDateParts = /[\d]{4}[\-/][\d]{1,2}[\-/][\d]{1,2}|[\d]{1,2}[\-/][\d]{1,2}[\-/][\d]{2,4}/.test(v)
+         const hasDateParts = /[\d]{4}-[\d]{1,2}-[\d]{1,2}|[\d]{1,2}-[\d]{1,2}-[\d]{2,4}/.test(v)
          if (!hasDateParts && !v.includes('T')) return { valid: false, error: msg, value: v }
 
          // Validación estricta: Evitar que JS convierta "Feb 30" a "March 2"
-         const dateMatch = v.match(/^(\d{4})[\-/](\d{1,2})[\-/](\d{1,2})/)
+         const dateMatch = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)
          if (dateMatch) {
             const [_, y, m, day] = dateMatch.map(Number)
             // Con el normalized, siempre usamos UTC
@@ -76,17 +76,17 @@ class DateValidator extends BaseValidator {
       if (timeMatch && baseValue) {
          // Extraemos la parte de la fecha del baseValue (asumiendo que baseValue tiene fecha)
          const baseStr = String(baseValue).trim()
-         const datePartMatch = baseStr.match(/^(\d{4}[\-/]\d{1,2}[\-/]\d{1,2})/)
+         const datePartMatch = baseStr.match(/^(\d{4}-\d{1,2}-\d{1,2})/)
          if (datePartMatch) {
             str = datePartMatch[1] + ' ' + timeMatch[1]
          }
       }
       // Caso 2: Es solo una fecha (YYYY-MM-DD), aplicamos el default
-      else if (/^\d{4}[\-/]\d{1,2}[\-/]\d{1,2}$/.test(str)) {
+      else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(str)) {
          str += ' ' + defaultTime
       }
 
-      let normalized = str.replace(' ', 'T').replace(/\//g, '-')
+      let normalized = str.replace(' ', 'T')
       if (!normalized.includes('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(normalized)) {
          normalized += 'Z'
       }
@@ -96,7 +96,7 @@ class DateValidator extends BaseValidator {
    convert(timeZone) {
       return this._addRule((v) => {
          // Normalización: Asegurar formato ISO y forzar UTC para que Date.parse sea consistente
-         let normalized = v.replace(' ', 'T').replace(/\//g, '-')
+         let normalized = v.replace(' ', 'T')
          if (!normalized.includes('Z') && !/[+-]\d{2}(:?\d{2})?$/.test(normalized)) {
             normalized += 'Z'
          }
