@@ -33,6 +33,31 @@ class ArrayValidator extends BaseValidator {
          value: v,
       }))
    }
+
+   of(elementValidator, msg) {
+      return this._addRule((v) => {
+         if (!Array.isArray(v)) return { valid: true, error: null, value: v }
+
+         const newValues = []
+         const errors = []
+         let hasErrors = false
+
+         v.forEach((item, index) => {
+            const { errors: elementErrors, value: newValue } = elementValidator.run(item)
+            if (elementErrors.length > 0) {
+               hasErrors = true
+               errors.push(`[${index}]: ${elementErrors.join(', ')}`)
+            }
+            newValues.push(newValue)
+         })
+
+         return {
+            valid: !hasErrors,
+            error: msg || (errors.length > 0 ? `Errores en elementos: ${errors.join('; ')}` : null),
+            value: hasErrors ? v : newValues,
+         }
+      })
+   }
 }
 
 module.exports = ArrayValidator
