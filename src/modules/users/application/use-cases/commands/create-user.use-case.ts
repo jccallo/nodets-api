@@ -9,7 +9,9 @@ import { HttpStatus } from '@/shared/http-status'
 import { UserRole } from '@/modules/users/domain/enums/user-role.enum'
 import { UserStatus } from '@/modules/users/domain/enums/user-status.enum'
 import bcrypt from 'bcryptjs'
+import { injectable } from 'tsyringe'
 
+@injectable()
 export class CreateUserUseCase {
    constructor(private userRepository: UserRepository) {}
 

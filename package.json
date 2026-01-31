@@ -29,7 +29,9 @@
       "knex-firebird-dialect": "^1.4.6",
       "mysql2": "^3.16.0",
       "node-firebird": "^1.1.9",
+      "reflect-metadata": "^0.2.2",
       "socket.io": "^4.8.3",
+      "tsyringe": "^4.10.0",
       "ulid": "^3.0.2",
       "uuid": "^13.0.0",
       "zod": "^4.3.5"

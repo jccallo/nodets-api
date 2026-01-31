@@ -1,7 +1,9 @@
 import { UserRepository } from '@/modules/users/domain/repositories/user.repository'
 import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
+import { injectable } from 'tsyringe'
 
+@injectable()
 export class DeleteUserUseCase {
    constructor(private userRepository: UserRepository) {}
 

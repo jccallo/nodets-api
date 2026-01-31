@@ -5,7 +5,9 @@ import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
 // Removed VO imports
 import bcrypt from 'bcryptjs'
+import { injectable } from 'tsyringe'
 
+@injectable()
 export class UpdateUserUseCase {
    constructor(private userRepository: UserRepository) {}
 

@@ -2,7 +2,9 @@ import { UserRepository } from '@/modules/users/domain/repositories/user.reposit
 import { User } from '@/modules/users/domain/entities/user.model'
 import { AppError } from '@/shared/domain/exceptions/app-error'
 import { HttpStatus } from '@/shared/http-status'
+import { injectable } from 'tsyringe'
 
+@injectable()
 export class GetUserByIdUseCase {
    constructor(private userRepository: UserRepository) {}
 

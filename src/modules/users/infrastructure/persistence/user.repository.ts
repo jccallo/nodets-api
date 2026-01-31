@@ -1,9 +1,11 @@
 import { UserRepository as IUserRepository, UserFilters } from '@/modules/users/domain/repositories/user.repository'
 import { User } from '@/modules/users/domain/entities/user.model'
 import { UserMapper } from '@/modules/users/infrastructure/mappers/user.mapper'
+import { injectable } from 'tsyringe'
 
 import { DB } from '@/shared/infrastructure/persistence/db'
 
+@injectable()
 export class UserRepository implements IUserRepository {
    private readonly tableName = 'users'
 
